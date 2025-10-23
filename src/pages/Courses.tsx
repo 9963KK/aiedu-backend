@@ -1,16 +1,16 @@
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, Plus, Edit } from "lucide-react";
 import { useState } from "react";
 
 const courses = [
-  { id: 1, name: "数据结构与算法", progress: 65, totalLessons: 48, completedLessons: 31 },
-  { id: 2, name: "计算机组成原理", progress: 42, totalLessons: 36, completedLessons: 15 },
-  { id: 3, name: "操作系统", progress: 78, totalLessons: 40, completedLessons: 31 },
-  { id: 4, name: "计算机网络", progress: 30, totalLessons: 45, completedLessons: 14 },
-  { id: 5, name: "数据库系统", progress: 55, totalLessons: 38, completedLessons: 21 },
-  { id: 6, name: "软件工程", progress: 20, totalLessons: 42, completedLessons: 8 },
+  { id: 1, name: "数据结构与算法" },
+  { id: 2, name: "计算机组成原理" },
+  { id: 3, name: "操作系统" },
+  { id: 4, name: "计算机网络" },
+  { id: 5, name: "数据库系统" },
+  { id: 6, name: "软件工程" },
 ];
 
 const Courses = () => {
@@ -45,36 +45,23 @@ const Courses = () => {
                 onClick={() => setSelectedCourse(course.id)}
               >
                 <CardContent className="p-6 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                      <BookOpen className="w-6 h-6 text-primary-foreground" />
+                  <div className="flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                      <BookOpen className="w-8 h-8 text-primary-foreground" />
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">{course.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {course.completedLessons} / {course.totalLessons} 课时
-                    </p>
-                  </div>
+                  <h3 className="text-lg font-semibold text-foreground text-center">{course.name}</h3>
 
-                  {/* Progress Bar */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">学习进度</span>
-                      <span className="font-medium text-foreground">{course.progress}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-primary to-accent transition-all"
-                        style={{ width: `${course.progress}%` }}
-                      />
-                    </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1 gap-2">
+                      <Edit className="w-4 h-4" />
+                      编辑
+                    </Button>
+                    <Button className="flex-1">
+                      继续学习
+                    </Button>
                   </div>
-
-                  <Button variant="outline" className="w-full">
-                    继续学习
-                  </Button>
                 </CardContent>
               </Card>
             ))}
