@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { BookOpen, Clock, Settings, ArrowLeft } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { BookOpen, Clock, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,6 @@ import {
 
 export function Header() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
 
   const courses = [
     { id: 1, name: "数据结构与算法" },
@@ -25,16 +23,7 @@ export function Header() {
   return (
     <header className="w-full border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        {!isHomePage ? (
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-        ) : (
+        <div className="flex items-center">
           <Button 
             variant="ghost" 
             size="icon"
@@ -42,8 +31,7 @@ export function Header() {
           >
             <BookOpen className="w-5 h-5" />
           </Button>
-        )}
-      </div>
+        </div>
 
         <div className="flex items-center gap-2">
           <DropdownMenu>
