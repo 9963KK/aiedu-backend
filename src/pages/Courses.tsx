@@ -39,7 +39,7 @@ const Courses = () => {
             {courses.map((course) => (
               <Card 
                 key={course.id}
-                className={`cursor-pointer transition-all hover:shadow-lg ${
+                className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:ring-2 hover:ring-primary ${
                   selectedCourse === course.id ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => setSelectedCourse(course.id)}
