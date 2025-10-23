@@ -15,6 +15,7 @@ export function Header() {
   const location = useLocation();
   const { toast } = useToast();
   const isHomePage = location.pathname === '/';
+  const isCoursesPage = location.pathname === '/courses';
   const [selectedCourse, setSelectedCourse] = React.useState("选择课程");
   const [confirmedCourse, setConfirmedCourse] = React.useState<string | null>(null);
 
@@ -70,51 +71,55 @@ export function Header() {
             </Button>
           )}
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                {displayCourse}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-card z-50">
-              {courses.map((course) => (
-                <DropdownMenuItem 
-                  key={course.id}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setSelectedCourse(course.name);
-                    setConfirmedCourse(null);
-                  }}
+          {!isCoursesPage && (
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="gap-2">
+                    {displayCourse}
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 bg-card z-50">
+                  {courses.map((course) => (
+                    <DropdownMenuItem 
+                      key={course.id}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setSelectedCourse(course.name);
+                        setConfirmedCourse(null);
+                      }}
+                    >
+                      {course.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {selectedCourse !== "选择课程" && !confirmedCourse && (
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={handleConfirmCourse}
+                  className="gap-1"
                 >
-                  {course.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <Check className="w-4 h-4" />
+                  确认
+                </Button>
+              )}
 
-          {selectedCourse !== "选择课程" && !confirmedCourse && (
-            <Button 
-              variant="default" 
-              size="sm"
-              onClick={handleConfirmCourse}
-              className="gap-1"
-            >
-              <Check className="w-4 h-4" />
-              确认
-            </Button>
-          )}
-
-          {(selectedCourse !== "选择课程" || confirmedCourse) && (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleCancelCourse}
-              className="gap-1"
-            >
-              <X className="w-4 h-4" />
-              取消
-            </Button>
+              {(selectedCourse !== "选择课程" || confirmedCourse) && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={handleCancelCourse}
+                  className="gap-1"
+                >
+                  <X className="w-4 h-4" />
+                  取消
+                </Button>
+              )}
+            </>
           )}
         </div>
 
