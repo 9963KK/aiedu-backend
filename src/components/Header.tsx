@@ -1,5 +1,6 @@
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Clock, Settings } from "lucide-react";
+import { BookOpen, Clock, Settings, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -10,6 +11,7 @@ import {
 
 export function Header() {
   const navigate = useNavigate();
+  const [selectedCourse, setSelectedCourse] = React.useState("数据结构与算法");
 
   const courses = [
     { id: 1, name: "数据结构与算法" },
@@ -23,7 +25,7 @@ export function Header() {
   return (
     <header className="w-full border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
             size="icon"
@@ -31,22 +33,21 @@ export function Header() {
           >
             <BookOpen className="w-5 h-5" />
           </Button>
-        </div>
-
-        <div className="flex items-center gap-2">
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <BookOpen className="w-5 h-5" />
+              <Button variant="ghost" className="gap-2">
+                {selectedCourse}
+                <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card z-50">
+            <DropdownMenuContent align="start" className="w-56 bg-card z-50">
               {courses.map((course) => (
                 <DropdownMenuItem 
                   key={course.id}
                   className="cursor-pointer"
                   onClick={() => {
-                    // 这里可以添加课程跳转逻辑
+                    setSelectedCourse(course.name);
                     console.log('选择课程:', course.name);
                   }}
                 >
@@ -55,7 +56,9 @@ export function Header() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          
+        </div>
+
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon">
             <Clock className="w-5 h-5" />
           </Button>
