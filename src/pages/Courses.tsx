@@ -2,7 +2,6 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Plus, Edit } from "lucide-react";
-import { useState } from "react";
 
 const courses = [
   { id: 1, name: "数据结构与算法" },
@@ -14,8 +13,6 @@ const courses = [
 ];
 
 const Courses = () => {
-  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -39,10 +36,7 @@ const Courses = () => {
             {courses.map((course) => (
               <Card 
                 key={course.id}
-                className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:ring-2 hover:ring-primary ${
-                  selectedCourse === course.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => setSelectedCourse(course.id)}
+                className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:ring-2 hover:ring-primary"
               >
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center justify-center">
