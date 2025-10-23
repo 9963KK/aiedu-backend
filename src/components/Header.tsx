@@ -13,7 +13,7 @@ export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
-  const [selectedCourse, setSelectedCourse] = React.useState("数据结构与算法");
+  const [selectedCourse, setSelectedCourse] = React.useState("选择课程");
 
   const courses = [
     { id: 1, name: "数据结构与算法" },
