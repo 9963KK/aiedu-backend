@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Clock, Settings, ChevronDown, ArrowLeft } from "lucide-react";
+import { BookOpen, Clock, Settings, ChevronDown, ArrowLeft, Check } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
@@ -8,12 +8,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const isHomePage = location.pathname === '/';
   const [selectedCourse, setSelectedCourse] = React.useState("选择课程");
+  const [confirmedCourse, setConfirmedCourse] = React.useState<string | null>(null);
 
   const courses = [
     { id: 1, name: "数据结构与算法" },
@@ -23,6 +26,18 @@ export function Header() {
     { id: 5, name: "数据库系统" },
     { id: 6, name: "软件工程" },
   ];
+
+  const handleConfirmCourse = () => {
+    if (selectedCourse !== "选择课程") {
+      setConfirmedCourse(selectedCourse);
+      toast({
+        title: "课程已确认",
+        description: `已选择：${selectedCourse}`,
+      });
+    }
+  };
+
+  const displayCourse = confirmedCourse || selectedCourse;
 
   return (
     <header className="w-full border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -49,7 +64,7 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
-                {selectedCourse}
+                {displayCourse}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -60,7 +75,7 @@ export function Header() {
                   className="cursor-pointer"
                   onClick={() => {
                     setSelectedCourse(course.name);
-                    console.log('选择课程:', course.name);
+                    setConfirmedCourse(null);
                   }}
                 >
                   {course.name}
@@ -68,6 +83,18 @@ export function Header() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {selectedCourse !== "选择课程" && !confirmedCourse && (
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={handleConfirmCourse}
+              className="gap-1"
+            >
+              <Check className="w-4 h-4" />
+              确认
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
