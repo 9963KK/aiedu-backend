@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Clock, Settings, ChevronDown, ArrowLeft, Check } from "lucide-react";
+import { BookOpen, Clock, Settings, ChevronDown, ArrowLeft, Check, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
@@ -35,6 +35,15 @@ export function Header() {
         description: `已选择：${selectedCourse}`,
       });
     }
+  };
+
+  const handleCancelCourse = () => {
+    setSelectedCourse("选择课程");
+    setConfirmedCourse(null);
+    toast({
+      title: "已取消选择",
+      description: "课程选择已重置",
+    });
   };
 
   const displayCourse = confirmedCourse || selectedCourse;
@@ -93,6 +102,18 @@ export function Header() {
             >
               <Check className="w-4 h-4" />
               确认
+            </Button>
+          )}
+
+          {(selectedCourse !== "选择课程" || confirmedCourse) && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleCancelCourse}
+              className="gap-1"
+            >
+              <X className="w-4 h-4" />
+              取消
             </Button>
           )}
         </div>
