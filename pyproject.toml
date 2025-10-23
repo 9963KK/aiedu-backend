@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiedu-backend"
+version = "0.1.0"
+description = "FastAPI backend scaffold for AI-assisted education workflows."
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.1",
+    "python-dotenv>=1.0.1",
+    "httpx>=0.27.0",
+    "langchain>=0.1.13",
+]
+readme = "README.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.1",
+    "pytest-asyncio>=0.23.5",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]

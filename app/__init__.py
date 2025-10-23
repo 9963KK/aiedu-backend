@@ -1,0 +1,1 @@
+"""AIEDU backend application package."""
