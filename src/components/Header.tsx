@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Brain, User, BookOpen, ChevronDown } from "lucide-react";
+import { Brain, BookOpen, ChevronDown, Clock, Settings } from "lucide-react";
 import { useState } from "react";
 
 const courses = [
@@ -61,12 +61,12 @@ export function Header() {
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm">
-            我的课程
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon">
+            <Clock className="w-5 h-5" />
           </Button>
           <Button variant="ghost" size="icon">
-            <User className="w-5 h-5" />
+            <Settings className="w-5 h-5" />
           </Button>
         </div>
       </div>
