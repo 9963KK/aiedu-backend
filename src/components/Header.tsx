@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Clock, Settings, ChevronDown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { BookOpen, Clock, Settings, ChevronDown, ArrowLeft } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,8 @@ import {
 
 export function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
   const [selectedCourse, setSelectedCourse] = React.useState("数据结构与算法");
 
   const courses = [
@@ -26,13 +28,23 @@ export function Header() {
     <header className="w-full border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate('/courses')}
-          >
-            <BookOpen className="w-5 h-5" />
-          </Button>
+          {!isHomePage ? (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          ) : (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate('/courses')}
+            >
+              <BookOpen className="w-5 h-5" />
+            </Button>
+          )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
