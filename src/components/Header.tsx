@@ -127,7 +127,11 @@ export function Header() {
           <Button variant="ghost" size="icon">
             <Clock className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate('/settings')}
+          >
             <Settings className="w-5 h-5" />
           </Button>
         </div>
