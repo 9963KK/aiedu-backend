@@ -62,17 +62,18 @@ class LLMService:
 
 
 def _build_client() -> LLMClient:
-    """Factory returning the correct LLM client based on settings."""
-    provider = settings.text_provider
-    if provider == "openai":
-        return OpenAIClient(
-            api_key=settings.text_api_key,
-            model=settings.text_model,
-            base_url=settings.text_base_url,
-            timeout=settings.request_timeout_seconds,
-        )
-    msg = f"Unsupported LLM provider '{provider}'."
-    raise ValueError(msg)
+    """Build an OpenAI-compatible client using TXT_* settings.
+
+    Many providers (including siliconflow, etc.) expose an OpenAI-compatible
+    Chat Completions API. We rely on TXT_BASEURL/TXT_APIKEY/TXT_MODEL to
+    connect, without restricting the provider name.
+    """
+    return OpenAIClient(
+        api_key=settings.text_api_key,
+        model=settings.text_model,
+        base_url=settings.text_base_url,
+        timeout=settings.request_timeout_seconds,
+    )
 
 
 @lru_cache
