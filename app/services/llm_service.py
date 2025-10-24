@@ -1,8 +1,17 @@
 """Service layer handling orchestration around LLM provider clients."""
 
-from functools import lru_cache
+from __future__ import annotations
 
-from app.clients.base import LLMClient
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import AsyncIterator, Sequence
+
+from app.clients.base import (
+    LLMClient,
+    LLMGenerationOptions,
+    LLMGenerationResult,
+    LLMStreamChunk,
+)
 from app.clients.openai_client import OpenAIClient
 from app.core.config import settings
 
@@ -12,10 +21,44 @@ class LLMService:
 
     def __init__(self, client: LLMClient) -> None:
         self._client = client
+        self._provider = settings.llm_provider.lower()
+
+    @property
+    def provider(self) -> str:
+        """Name of the configured LLM provider."""
+        return self._provider
+
+    async def generate_completion(
+        self,
+        messages: Sequence[dict[str, str]],
+        *,
+        model: str | None = None,
+        temperature: float | None = None,
+    ) -> LLMGenerationResult:
+        """Execute a non-streaming completion and aggregate the result."""
+        options = LLMGenerationOptions(model=model, temperature=temperature)
+        return await self._client.generate(messages=messages, options=options)
+
+    async def stream_completion(
+        self,
+        messages: Sequence[dict[str, str]],
+        *,
+        model: str | None = None,
+        temperature: float | None = None,
+    ) -> AsyncIterator[LLMStreamChunk]:
+        """Yield streaming chunks for the provided chat messages."""
+        options = LLMGenerationOptions(model=model, temperature=temperature)
+        async for chunk in self._client.stream(messages=messages, options=options):
+            yield chunk
 
     async def generate_response(self, prompt: str, context: str | None = None) -> str:
-        """Send a prompt to the underlying LLM client and return the generated text."""
-        return await self._client.generate(prompt=prompt, context=context)
+        """Compatibility helper mirroring the legacy prompt endpoint."""
+        messages: list[dict[str, str]] = []
+        if context:
+            messages.append({"role": "system", "content": context})
+        messages.append({"role": "user", "content": prompt})
+        result = await self.generate_completion(messages=messages)
+        return result.content
 
 
 def _build_client() -> LLMClient:
