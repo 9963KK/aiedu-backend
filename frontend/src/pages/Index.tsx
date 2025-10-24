@@ -202,8 +202,11 @@ const Index = () => {
             </div>
           ))}
 
-          {/* 加载状态 - 流式输出时不显示,只在等待首个 token 时显示 */}
-          {loading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (
+          {/* 加载状态 - 当最后一条消息是用户消息,或者是空的 assistant 消息时显示 */}
+          {loading && messages.length > 0 && (
+            messages[messages.length - 1]?.role === "user" ||
+            (messages[messages.length - 1]?.role === "assistant" && messages[messages.length - 1]?.content === "")
+          ) && (
             <div className="flex gap-2 justify-start animate-in slide-in-from-bottom-2 duration-300">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-start">
                 <Bot className="w-5 h-5 text-white" />
