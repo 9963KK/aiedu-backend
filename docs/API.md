@@ -351,53 +351,122 @@ Authorization: Bearer {access_token}
 }
 ```
 
-### 4.2 发送消息
-**POST** `/chat/sessions/{sessionId}/messages`
+### 4.2 发送消息 (流式响应)
+**POST** `/chat/messages/stream`
+
+> **设计说明:** 这是前端期望的接口格式,用于实现流式 LLM 对话功能。
+> 前端需要实时显示 AI 回答,因此使用 Server-Sent Events (SSE) 流式传输。
+
+**请求头:**
+```
+Content-Type: application/json
+Authorization: Bearer {access_token}
+Accept: text/event-stream
+```
 
 **请求体:**
 ```json
 {
-  "content": "用户问题内容",
-  "type": "text",
-  "attachments": [
-    {
-      "type": "file",
-      "url": "https://...",
-      "name": "资料.pdf"
-    }
-  ]
+  "message": "用户问题内容",
+  "courseId": "uuid (可选)",
+  "sessionId": "session-uuid (可选,如果是新对话则不传)",
+  "context": {
+    "previousMessages": [
+      {
+        "role": "user",
+        "content": "之前的问题"
+      },
+      {
+        "role": "assistant",
+        "content": "之前的回答"
+      }
+    ]
+  }
 }
 ```
 
-**响应 (流式):**
-```json
-// Server-Sent Events (SSE) 流式响应
-data: {"type": "start", "messageId": "msg-uuid"}
+**响应格式 (Server-Sent Events 流式):**
+
+流式响应使用 SSE 格式,每个事件以 `data:` 开头,包含 JSON 数据:
+
+```
+# 1. 开始事件
+data: {"type": "start", "sessionId": "session-uuid", "messageId": "msg-uuid", "timestamp": "2025-01-24T10:00:00Z"}
+
+# 2. 文本片段事件 (持续接收)
 data: {"type": "token", "content": "这"}
+
 data: {"type": "token", "content": "是"}
+
+data: {"type": "token", "content": "一个"}
+
 data: {"type": "token", "content": "AI"}
+
 data: {"type": "token", "content": "回答"}
-data: {"type": "end", "messageId": "msg-uuid", "timestamp": "2025-01-24T10:00:00Z"}
+
+# 3. 结束事件
+data: {"type": "end", "messageId": "msg-uuid", "totalTokens": 150, "timestamp": "2025-01-24T10:00:05Z"}
+
+# 4. 连接关闭
 ```
 
-**响应 (非流式):**
+**事件类型说明:**
+
+| 事件类型 | 字段 | 说明 |
+|---------|------|------|
+| `start` | `sessionId`, `messageId`, `timestamp` | 流式响应开始 |
+| `token` | `content` | AI 生成的文本片段 |
+| `error` | `code`, `message` | 发生错误 |
+| `end` | `messageId`, `totalTokens`, `timestamp` | 流式响应结束 |
+
+**错误事件示例:**
+```
+data: {"type": "error", "code": "RATE_LIMIT", "message": "请求过于频繁，请稍后再试"}
+```
+
+### 4.3 发送消息 (非流式响应)
+**POST** `/chat/messages`
+
+> **说明:** 用于不需要流式输出的场景,一次性返回完整回答。
+
+**请求体:**
+```json
+{
+  "message": "用户问题内容",
+  "courseId": "uuid (可选)",
+  "sessionId": "session-uuid (可选)"
+}
+```
+
+**响应:**
 ```json
 {
   "success": true,
   "data": {
-    "id": "msg-uuid",
-    "content": "AI 回答内容",
-    "role": "assistant",
-    "createdAt": "2025-01-24T10:00:00Z",
+    "sessionId": "session-uuid",
+    "messageId": "msg-uuid",
+    "userMessage": {
+      "id": "user-msg-uuid",
+      "role": "user",
+      "content": "用户问题内容",
+      "createdAt": "2025-01-24T10:00:00Z"
+    },
+    "assistantMessage": {
+      "id": "assistant-msg-uuid",
+      "role": "assistant",
+      "content": "完整的 AI 回答内容...",
+      "createdAt": "2025-01-24T10:00:05Z"
+    },
     "metadata": {
       "tokensUsed": 150,
-      "model": "gpt-4"
+      "model": "gpt-4",
+      "responseTime": 5200
     }
   }
 }
 ```
 
-### 4.3 获取会话历史
+### 4.4 获取会话历史
 **GET** `/chat/sessions/{sessionId}/messages`
 
 **查询参数:**
@@ -430,7 +499,7 @@ data: {"type": "end", "messageId": "msg-uuid", "timestamp": "2025-01-24T10:00:00
 }
 ```
 
-### 4.4 语音转文字
+### 4.5 语音转文字
 **POST** `/chat/voice/transcribe`
 
 **请求体 (multipart/form-data):**
