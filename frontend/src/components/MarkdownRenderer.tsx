@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -10,7 +10,18 @@ type Props = {
 };
 
 // 统一的 Markdown 渲染器：支持 GFM、表格、任务列表、代码高亮、公式
+function normalizeLatexDelimiters(src: string): string {
+  let out = src;
+  // 支持 \( ... \) 与 \[ ... \] 语法（转为 $ 与 $$）
+  out = out.replace(/\\\(([\s\S]*?)\\\)/g, (_m, inner) => `$${inner}$`);
+  out = out.replace(/\\\[([\s\S]*?)\\\]/g, (_m, inner) => `$$${inner}$$`);
+  // 将中文全角括号包裹且以反斜杠开头的疑似 LaTeX 转为 $...$
+  out = out.replace(/（\s*(\\[\s\S]*?)）/g, (_m, inner) => `$${inner}$`);
+  return out;
+}
+
 export const MarkdownRenderer: React.FC<Props> = ({ content }) => {
+  const text = useMemo(() => normalizeLatexDelimiters(content), [content]);
   return (
     <div className="prose prose-zinc dark:prose-invert max-w-none break-words">
       <ReactMarkdown
@@ -44,7 +55,7 @@ export const MarkdownRenderer: React.FC<Props> = ({ content }) => {
           ),
         }}
       >
-        {content}
+        {text}
       </ReactMarkdown>
     </div>
   );
