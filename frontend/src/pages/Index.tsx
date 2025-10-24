@@ -160,9 +160,9 @@ const Index = () => {
   );
 
   const chat = (
-    <main className="flex-1 animate-in fade-in duration-500">
-      <div className="mx-auto max-w-3xl h-full flex flex-col px-4">
-        <div className="flex-1 overflow-y-auto py-4 space-y-3">
+    <main className="flex-1 flex flex-col animate-in fade-in duration-500 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-3xl px-4 py-4 space-y-3">
           {messages.map((m, idx) => (
             <div
               key={idx}
@@ -198,8 +198,8 @@ const Index = () => {
             </div>
           ))}
 
-          {/* 加载状态 */}
-          {loading && (
+          {/* 加载状态 - 流式输出时不显示,只在等待首个 token 时显示 */}
+          {loading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-2 justify-start animate-in slide-in-from-bottom-2 duration-300">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-end">
                 <Bot className="w-5 h-5 text-white" />
@@ -215,8 +215,12 @@ const Index = () => {
           )}
           <div ref={bottomRef} />
         </div>
-        <form onSubmit={handleSubmit} className="sticky bottom-0 border-t bg-background py-4">
-          <div className="flex items-center gap-3 px-4">
+      </div>
+
+      {/* 固定在底部的输入框 */}
+      <div className="border-t bg-background">
+        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 py-4">
+          <div className="flex items-center gap-3">
             <Input
               type="text"
               placeholder="继续提问..."
