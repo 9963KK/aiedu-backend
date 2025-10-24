@@ -21,6 +21,9 @@ All colors MUST be HSL.
     --primary-foreground: 0 0% 100%;
     --primary-glow: 252 80% 70%;
 
+    --user-bubble: 252 44% 57%;
+    --user-bubble-foreground: 0 0% 100%;
+
     --secondary: 240 10% 96%;
     --secondary-foreground: 240 15% 15%;
 
@@ -79,6 +82,9 @@ All colors MUST be HSL.
     --primary: 252 65% 58%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 252 80% 70%;
+
+    --user-bubble: 252 44% 57%;
+    --user-bubble-foreground: 0 0% 100%;
 
     --secondary: 240 10% 18%;
     --secondary-foreground: 240 10% 95%;
