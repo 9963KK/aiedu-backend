@@ -204,12 +204,10 @@ const Index = () => {
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-end">
                 <Bot className="w-5 h-5 text-white" />
               </div>
-              <div className="max-w-[70%] rounded-2xl px-4 py-2.5 bg-muted">
-                <div className="flex items-center gap-1.5 text-[15px]">
-                  <span className="animate-bounce text-gray-400">●</span>
-                  <span className="animate-bounce delay-100 text-gray-400">●</span>
-                  <span className="animate-bounce delay-200 text-gray-400">●</span>
-                </div>
+              <div className="rounded-2xl px-5 py-3 bg-muted flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></span>
+                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce delay-100"></span>
+                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce delay-200"></span>
               </div>
             </div>
           )}
@@ -217,26 +215,31 @@ const Index = () => {
         </div>
       </div>
 
-      {/* 固定在底部的输入框 */}
-      <div className="border-t bg-background">
-        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 py-4">
-          <div className="flex items-center gap-3">
+      {/* 悬浮在底部的输入框 */}
+      <div className="pb-4 px-4">
+        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-card border shadow-lg hover:shadow-xl transition-shadow">
+            <Button type="button" variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+              <Plus className="w-5 h-5" />
+            </Button>
             <Input
               type="text"
               placeholder="继续提问..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="flex-1"
+              className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
             />
-            {loading ? (
-              <Button type="button" size="icon" variant="secondary" onClick={handleStop} className="h-10 w-10 flex-shrink-0">
-                <Square className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button type="submit" size="icon" className="h-10 w-10 flex-shrink-0 rounded-full">
-                <ArrowUp className="w-5 h-5" />
-              </Button>
-            )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {loading ? (
+                <Button type="button" size="icon" variant="ghost" onClick={handleStop} className="h-8 w-8">
+                  <Square className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button type="submit" size="icon" className="h-10 w-10 rounded-full">
+                  <ArrowUp className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
           </div>
         </form>
       </div>
