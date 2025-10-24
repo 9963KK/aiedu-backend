@@ -17,11 +17,19 @@ const Index = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          msg = body?.detail || body?.error?.message || msg;
+        } catch {}
+        throw new Error(msg);
+      }
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "user", content: text }, { role: "assistant", content: data.content }]);
     } catch (err) {
-      setMessages((prev) => [...prev, { role: "assistant", content: "请求失败，请稍后重试。" }]);
+      const message = err instanceof Error ? err.message : "请求失败，请稍后重试。";
+      setMessages((prev) => [...prev, { role: "assistant", content: message }]);
     } finally {
       setLoading(false);
     }
