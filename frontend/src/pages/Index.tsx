@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Mic, ArrowUp, Square, Bot } from "lucide-react";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { useEffect, useRef, useState } from "react";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -226,7 +227,7 @@ const Index = () => {
                           <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce delay-200"></span>
                         </div>
                       ) : (
-                        <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                        <MarkdownRenderer content={m.content} />
                       )}
                     </div>
                   </div>
