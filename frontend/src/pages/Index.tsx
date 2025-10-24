@@ -6,11 +6,33 @@ import { useState } from "react";
 
 const Index = () => {
   const [query, setQuery] = useState("");
+  const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [loading, setLoading] = useState(false);
+
+  const callChatOnce = async (text: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/llm/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setMessages((prev) => [...prev, { role: "user", content: text }, { role: "assistant", content: data.content }]);
+    } catch (err) {
+      setMessages((prev) => [...prev, { role: "assistant", content: "请求失败，请稍后重试。" }]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle submission logic here
-    console.log("Query:", query);
+    const text = query.trim();
+    if (!text) return;
+    setQuery("");
+    void callChatOnce(text);
   };
 
   return (
@@ -64,6 +86,19 @@ const Index = () => {
               </div>
             </div>
           </form>
+
+          {/* Messages */}
+          <div className="text-left space-y-4">
+            {messages.map((m, idx) => (
+              <div key={idx} className="rounded-lg border p-4 bg-card">
+                <div className="text-xs text-muted-foreground mb-1">{m.role === "user" ? "你" : "AI"}</div>
+                <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+              </div>
+            ))}
+            {loading && (
+              <div className="rounded-lg border p-4 bg-card text-muted-foreground">正在思考...</div>
+            )}
+          </div>
         </div>
       </main>
     </div>
