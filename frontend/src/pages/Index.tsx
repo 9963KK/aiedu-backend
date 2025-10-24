@@ -220,7 +220,7 @@ const Index = () => {
       </div>
 
       {/* 悬浮在底部的输入框 */}
-      <div className="pb-4 px-4">
+      <div className="pb-6 px-4">
         <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
           <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-card border shadow-lg hover:shadow-xl transition-shadow">
             <Button type="button" variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
