@@ -166,7 +166,7 @@ const Index = () => {
   const chat = (
     <main className="flex-1 flex flex-col animate-in fade-in duration-500 overflow-hidden">
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-4 py-4 space-y-3">
+        <div className="mx-auto max-w-3xl px-4 pb-4 space-y-3">
           {messages.map((m, idx) => (
             <div
               key={idx}
