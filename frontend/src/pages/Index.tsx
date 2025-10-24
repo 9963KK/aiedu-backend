@@ -117,11 +117,11 @@ const Index = () => {
     // 如果是第一条消息,触发过渡动画
     if (messages.length === 0) {
       setIsTransitioning(true);
-      // 延迟一点执行,确保动画开始
+      // 延迟执行,等待动画完成
       setTimeout(() => {
         setQuery("");
         void callChatStream(text);
-      }, 100);
+      }, 300);
     } else {
       setQuery("");
       void callChatStream(text);
@@ -135,85 +135,61 @@ const Index = () => {
   // 判断是否显示聊天界面
   const showChat = messages.length > 0 || isTransitioning;
 
-  // 统一的输入框组件
-  const inputForm = (
-    <form
-      onSubmit={handleSubmit}
-      className={`w-full transition-all duration-700 ease-in-out ${
-        showChat
-          ? "fixed bottom-0 left-0 right-0 animate-in slide-in-from-top-full"
-          : "relative"
-      }`}
-    >
-      {showChat && (
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm pointer-events-none" />
-      )}
-      <div className={`mx-auto px-4 ${showChat ? "max-w-3xl pb-6 pt-4 relative z-10" : "max-w-4xl"}`}>
-        <div
-          className={`flex items-center gap-3 px-6 py-4 rounded-full border bg-card shadow-lg hover:shadow-xl transition-all ${
-            showChat ? "border-2 shadow-2xl" : ""
-          }`}
-        >
-          {!showChat && (
-            <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-              <Plus className="w-5 h-5" />
-            </Button>
-          )}
-          <Input
-            type="text"
-            placeholder={showChat ? "继续提问..." : "询问任何问题,或添加资料开始学习..."}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
-            autoFocus={!showChat}
-          />
-          <div className="flex items-center gap-2 shrink-0">
-            {!showChat && (
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
-                <Mic className="w-5 h-5" />
-              </Button>
-            )}
-            {loading ? (
-              <Button
-                type="button"
-                size="icon"
-                variant="secondary"
-                onClick={handleStop}
-                className="h-10 w-10 rounded-full"
-              >
-                <Square className="w-5 h-5" />
-              </Button>
-            ) : (
-              <Button type="submit" size="icon" className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90">
-                <ArrowUp className="w-5 h-5" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-    </form>
-  );
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      {!showChat ? (
-        // 欢迎页
-        <main
-          className="container mx-auto px-4 flex items-center justify-center"
-          style={{ minHeight: "calc(100vh - 80px)" }}
-        >
-          <div className="w-full max-w-4xl space-y-12 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground">今天想学点什么?</h1>
-            {inputForm}
+      {/* 欢迎页 */}
+      <main
+        className={`container mx-auto px-4 flex items-center justify-center transition-all duration-500 ${
+          showChat ? "opacity-0 pointer-events-none absolute inset-0" : "opacity-100 relative"
+        }`}
+        style={{ minHeight: "calc(100vh - 80px)" }}
+      >
+        <div className="w-full max-w-4xl space-y-12 text-center">
+          <h1
+            className={`text-4xl md:text-5xl font-bold text-foreground transition-all duration-500 ${
+              showChat ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"
+            }`}
+          >
+            今天想学点什么?
+          </h1>
+          <div className="relative">
+            <form
+              onSubmit={handleSubmit}
+              className="relative"
+            >
+              <div className="flex items-center gap-3 px-6 py-4 rounded-full border bg-card shadow-lg hover:shadow-xl transition-shadow">
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                  <Plus className="w-5 h-5" />
+                </Button>
+                <Input
+                  type="text"
+                  placeholder="询问任何问题,或添加资料开始学习..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
+                  autoFocus
+                />
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+                    <Mic className="w-5 h-5" />
+                  </Button>
+                  <Button type="submit" size="icon" className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90">
+                    <ArrowUp className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+            </form>
           </div>
-        </main>
-      ) : (
-        // 聊天页
-        <main className="flex-1 relative">
+        </div>
+      </main>
+
+      {/* 聊天页 */}
+      {showChat && (
+        <main className="flex-1 relative animate-in fade-in duration-300">
           <div className="mx-auto max-w-3xl h-full flex flex-col px-4">
-            <div className="flex-1 overflow-y-auto py-4 space-y-4 pb-32">
+            <div className="flex-1 overflow-y-auto py-4 space-y-4 pb-24">
               {messages.map((m, idx) => {
                 const isTyping =
                   loading && idx === messages.length - 1 && m.role === "assistant" && m.content.length === 0;
@@ -259,7 +235,36 @@ const Index = () => {
               <div ref={bottomRef} />
             </div>
           </div>
-          {inputForm}
+
+          {/* 聊天页输入框 */}
+          <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
+            <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-3 pt-2">
+              <div className="flex items-center gap-3 px-6 py-4 rounded-full border-2 bg-card shadow-2xl hover:shadow-xl transition-shadow">
+                <Input
+                  type="text"
+                  placeholder="继续提问..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
+                />
+                {loading ? (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="secondary"
+                    onClick={handleStop}
+                    className="h-10 w-10 rounded-full shrink-0"
+                  >
+                    <Square className="w-5 h-5" />
+                  </Button>
+                ) : (
+                  <Button type="submit" size="icon" className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 shrink-0">
+                    <ArrowUp className="w-5 h-5" />
+                  </Button>
+                )}
+              </div>
+            </form>
+          </div>
         </main>
       )}
     </div>
