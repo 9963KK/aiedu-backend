@@ -190,7 +190,7 @@ const Index = () => {
       {showChat && (
         <main className="flex-1 relative animate-in fade-in duration-300">
           <div className="mx-auto max-w-3xl h-full flex flex-col px-4">
-            <div className="flex-1 overflow-y-auto py-4 space-y-4 pb-24">
+            <div className="flex-1 overflow-y-auto py-4 space-y-4 pb-32">
               {messages.map((m, idx) => {
                 const isTyping =
                   loading && idx === messages.length - 1 && m.role === "assistant" && m.content.length === 0;
@@ -238,7 +238,7 @@ const Index = () => {
           </div>
 
           {/* 聊天页输入框 */}
-          <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
+          <div className="fixed left-0 right-0 bottom-6 md:bottom-8 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-3 pt-2">
               <div className="flex items-center gap-3 px-6 py-4 rounded-full border-2 bg-card shadow-2xl hover:shadow-xl transition-shadow">
                 <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0">
