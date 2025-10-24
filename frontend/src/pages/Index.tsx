@@ -10,6 +10,7 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 const Index = () => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -31,7 +32,13 @@ const Index = () => {
       const res = await fetch(`/api/llm/messages/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          sessionId: sessionId ?? undefined,
+          context: {
+            previousMessages: messages.slice(-10),
+          },
+        }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -67,7 +74,9 @@ const Index = () => {
           } catch {
             continue;
           }
-          if (payload.type === "token" && typeof payload.content === "string") {
+          if (payload.type === "start" && payload.sessionId && !sessionId) {
+            setSessionId(payload.sessionId as string);
+          } else if (payload.type === "token" && typeof payload.content === "string") {
             let token = payload.content as string;
             if (assistant.length === 0) {
               token = token.replace(/^[\s\r\n]+/, "");
