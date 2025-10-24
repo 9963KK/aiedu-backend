@@ -179,9 +179,10 @@ const Index = () => {
               <div
                 className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
                   m.role === "user"
-                    ? "bg-primary text-primary-foreground"
+                    ? "text-white"
                     : "bg-muted"
                 }`}
+                style={m.role === "user" ? { backgroundColor: 'rgb(104, 82, 211)' } : {}}
               >
                 <div className="whitespace-pre-wrap leading-relaxed text-[15px]">
                   {m.content}
@@ -190,7 +191,7 @@ const Index = () => {
 
               {/* 用户头像在右侧 */}
               {m.role === "user" && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center flex-shrink-0 mt-1">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style={{ background: 'linear-gradient(to bottom right, rgb(104, 82, 211), rgb(88, 64, 191))' }}>
                   <User className="w-5 h-5 text-white" />
                 </div>
               )}
