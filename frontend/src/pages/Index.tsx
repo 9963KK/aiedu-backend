@@ -142,6 +142,13 @@ const Index = () => {
     abortRef.current?.abort();
   };
 
+  const handleNewChat = () => {
+    setMessages([]);
+    setSessionId(null);
+    setIsTransitioning(false);
+    setQuery("");
+  };
+
   // 判断是否显示聊天界面
   const showChat = messages.length > 0 || isTransitioning;
 
@@ -199,6 +206,11 @@ const Index = () => {
       {showChat && (
         <main className="flex-1 relative animate-in fade-in duration-300">
           <div className="mx-auto max-w-3xl h-full flex flex-col px-4">
+            <div className="py-2 flex items-center justify-end">
+              <Button variant="secondary" size="sm" onClick={handleNewChat}>
+                返回欢迎页 / 新会话
+              </Button>
+            </div>
             <div className="flex-1 overflow-y-auto py-4 space-y-4 pb-32">
               {messages.map((m, idx) => {
                 const isTyping =
