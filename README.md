@@ -1,16 +1,20 @@
-# AIEDU Backend
+# AIEDU Full-Stack Workspace
 
-FastAPI-based backend scaffold for AI-powered education products. The layout is designed for rapid iteration with LLM providers while keeping the project modular and testable.
+This repository hosts both the FastAPI backend and the React/Lovable frontend for the AIEDU project. Branches are organised so the full system can be integrated on `main`, while individual stacks remain easy to evolve.
 
-## Stack
+## Branch Layout
+
+- `backend`: FastAPI service powering LLM features and future APIs.
+- `frontend`: UI generated via Lovable (Vite + React + shadcn-ui + Tailwind CSS).
+- `main`: Canonical integration branch that should always build end-to-end.
+
+## Backend (FastAPI)
 
 - Python 3.10+
-- FastAPI for the web framework
-- Pydantic & `pydantic-settings` for configuration
+- FastAPI, Pydantic, `pydantic-settings`, LangChain placeholder
 - Async HTTP via `httpx`
-- LangChain placeholder for advanced orchestration
 
-## Getting Started
+### Local setup
 
 ```bash
 python -m venv .venv
@@ -20,14 +24,14 @@ cp .env.example .env  # populate secrets such as OPENAI_API_KEY
 uvicorn app.main:app --reload
 ```
 
-## Running Tests
+### Tests
 
 ```bash
 pip install .[dev]  # optional: install test deps from pyproject
 pytest
 ```
 
-## Project Layout
+### Layout
 
 ```
 app/
@@ -39,8 +43,37 @@ app/
 tests/            # pytest-based test suite
 ```
 
-## Next Steps
+## Frontend (Lovable / Vite + React)
 
-- Implement provider-specific clients beyond OpenAI
-- Add persistence (PostgreSQL, Redis) as product requirements emerge
-- Harden security (auth, rate limiting) before production deployments
+- Vite, TypeScript, React
+- shadcn-ui + Tailwind CSS component system
+
+### Local setup
+
+The UI is generated and synced via Lovable. You can continue iterating on the hosted editor or work locally:
+
+```bash
+# install dependencies (requires Node.js; nvm recommended)
+npm install
+
+# run the dev server with hot reload
+npm run dev
+```
+
+Lovable dashboard for this project: `https://lovable.dev/projects/8a04d4fc-b640-4afb-abea-b16705cbf903`
+
+## Working Across Branches
+
+1. Update specialised branches:
+   - Backend: `git checkout backend && git pull`
+   - Frontend: `git checkout frontend && git pull`
+2. Merge into `main` once both sides build and pass checks:
+   - `git checkout main`
+   - `git merge backend`
+   - `git merge frontend`
+3. Push `main` to share a consistent snapshot of the entire platform.
+
+## Deployment Notes
+
+- Frontend deploys directly from Lovable (Share → Publish). Custom domains can be configured in the Lovable project settings.
+- Backend deployment strategy is open; Docker + cloud hosting can be added when ready.
