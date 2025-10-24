@@ -46,8 +46,8 @@ const Index = () => {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    // 先追加用户消息与一个空的助手占位消息
-    setMessages((prev) => [...prev, { role: "user", content: text }, { role: "assistant", content: "" }]);
+    // 先追加用户消息,等待 AI 响应
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
 
     try {
       const res = await fetch(`/api/llm/messages/stream`, {
@@ -92,12 +92,16 @@ const Index = () => {
           if (payload.type === "token" && typeof payload.content === "string") {
             assistant += payload.content;
             setMessages((prev) => {
-              const next = [...prev];
-              const lastIdx = next.length - 1;
-              if (lastIdx >= 0 && next[lastIdx].role === "assistant") {
-                next[lastIdx] = { role: "assistant", content: assistant };
+              const lastMsg = prev[prev.length - 1];
+              if (lastMsg?.role === "assistant") {
+                // 更新已有的 assistant 消息
+                const next = [...prev];
+                next[next.length - 1] = { role: "assistant", content: assistant };
+                return next;
+              } else {
+                // 首次收到 token,添加新的 assistant 消息
+                return [...prev, { role: "assistant", content: assistant }];
               }
-              return next;
             });
           } else if (payload.type === "error") {
             throw new Error(payload.message || "流式出错");
