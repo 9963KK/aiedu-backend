@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Mic, ArrowUp, Square } from "lucide-react";
+import { Plus, Mic, ArrowUp, Square, Bot, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const Index = () => {
@@ -166,33 +166,48 @@ const Index = () => {
           {messages.map((m, idx) => (
             <div
               key={idx}
-              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
+              className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
             >
+              {/* AI 头像在左侧 */}
+              {m.role === "assistant" && (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+              )}
+
+              {/* 消息气泡 */}
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
                   m.role === "user"
-                    ? "bg-primary text-primary-foreground ml-auto"
-                    : "bg-card border shadow-sm"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
                 }`}
               >
-                <div className="text-xs opacity-70 mb-1 font-medium">
-                  {m.role === "user" ? "你" : "AI"}
-                </div>
-                <div className="whitespace-pre-wrap leading-relaxed text-sm">
+                <div className="whitespace-pre-wrap leading-relaxed text-[15px]">
                   {m.content}
                 </div>
               </div>
+
+              {/* 用户头像在右侧 */}
+              {m.role === "user" && (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center flex-shrink-0 mt-1">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
             </div>
           ))}
+
+          {/* 加载状态 */}
           {loading && (
-            <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-300">
-              <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-card border shadow-sm">
-                <div className="text-xs opacity-70 mb-1 font-medium">AI</div>
-                <div className="flex items-center gap-1 text-muted-foreground text-sm">
+            <div className="flex gap-2 justify-start animate-in slide-in-from-bottom-2 duration-300">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div className="max-w-[70%] rounded-2xl px-4 py-2.5 bg-muted">
+                <div className="flex items-center gap-1 text-muted-foreground text-[15px]">
                   <span className="animate-bounce">●</span>
                   <span className="animate-bounce delay-100">●</span>
                   <span className="animate-bounce delay-200">●</span>
-                  <span className="ml-1">正在思考...</span>
                 </div>
               </div>
             </div>
