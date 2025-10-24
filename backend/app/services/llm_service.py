@@ -21,7 +21,7 @@ class LLMService:
 
     def __init__(self, client: LLMClient) -> None:
         self._client = client
-        self._provider = settings.llm_provider.lower()
+        self._provider = settings.text_provider
 
     @property
     def provider(self) -> str:
@@ -63,14 +63,15 @@ class LLMService:
 
 def _build_client() -> LLMClient:
     """Factory returning the correct LLM client based on settings."""
-    provider = settings.llm_provider.lower()
+    provider = settings.text_provider
     if provider == "openai":
         return OpenAIClient(
-            api_key=settings.openai_api_key,
-            model=settings.model_name,
+            api_key=settings.text_api_key,
+            model=settings.text_model,
+            base_url=settings.text_base_url,
             timeout=settings.request_timeout_seconds,
         )
-    msg = f"Unsupported LLM provider '{settings.llm_provider}'."
+    msg = f"Unsupported LLM provider '{provider}'."
     raise ValueError(msg)
 
 

@@ -1,4 +1,8 @@
-"""Async client for interacting with OpenAI's Chat Completions API."""
+"""Async client for interacting with OpenAI-compatible Chat Completions API.
+
+This client targets the OpenAI Chat Completions schema and also works with
+compatible providers when a custom base URL is provided (e.g. self-hosted gateways).
+"""
 
 from __future__ import annotations
 
@@ -9,15 +13,16 @@ import httpx
 
 from .base import LLMClient, LLMGenerationOptions, LLMGenerationResult, LLMStreamChunk
 
-OPENAI_CHAT_COMPLETIONS_URL: Final[str] = "https://api.openai.com/v1/chat/completions"
+DEFAULT_OPENAI_BASE_URL: Final[str] = "https://api.openai.com/v1"
 
 
 class OpenAIClient(LLMClient):
-    """Minimal async OpenAI client suited for server-side prompt execution."""
+    """Minimal async OpenAI-compatible client for server-side prompt execution."""
 
-    def __init__(self, api_key: str | None, model: str, timeout: int = 60) -> None:
+    def __init__(self, api_key: str | None, model: str, base_url: str = DEFAULT_OPENAI_BASE_URL, timeout: int = 60) -> None:
         self._api_key = api_key
         self._model = model
+        self._base_url = base_url
         self._timeout = timeout
 
     async def generate(
@@ -28,14 +33,14 @@ class OpenAIClient(LLMClient):
     ) -> LLMGenerationResult:
         """Call the OpenAI chat completions API and return the assistant reply."""
         if not self._api_key:
-            msg = "OPENAI_API_KEY must be provided to use the OpenAI LLM client."
+            msg = "Text LLM API key must be provided (TXT_APIKEY)."
             raise ValueError(msg)
 
         payload = self._build_payload(messages=messages, options=options)
 
         async with httpx.AsyncClient(timeout=self._timeout) as client:
             response = await client.post(
-                OPENAI_CHAT_COMPLETIONS_URL,
+                self._completions_url,
                 headers=self._build_headers(),
                 json=payload,
             )
@@ -69,7 +74,7 @@ class OpenAIClient(LLMClient):
     ) -> AsyncIterator[LLMStreamChunk]:
         """Streaming chat completions using OpenAI's streamed responses."""
         if not self._api_key:
-            msg = "OPENAI_API_KEY must be provided to use the OpenAI LLM client."
+            msg = "Text LLM API key must be provided (TXT_APIKEY)."
             raise ValueError(msg)
 
         payload = self._build_payload(messages=messages, options=options)
@@ -78,7 +83,7 @@ class OpenAIClient(LLMClient):
         async with httpx.AsyncClient(timeout=self._timeout) as client:
             async with client.stream(
                 "POST",
-                OPENAI_CHAT_COMPLETIONS_URL,
+                self._completions_url,
                 headers=self._build_headers(),
                 json=payload,
             ) as response:
@@ -148,6 +153,11 @@ class OpenAIClient(LLMClient):
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
         }
+
+    @property
+    def _completions_url(self) -> str:
+        base = self._base_url.rstrip("/")
+        return f"{base}/chat/completions"
 
 
 def _extract_error_detail(response: httpx.Response) -> str:

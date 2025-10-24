@@ -113,7 +113,7 @@ async def generate_message(
 
     metadata = {
         "provider": llm_service.provider,
-        "model": result.model or (payload.options.model if payload.options else None) or settings.model_name,
+        "model": result.model or (payload.options.model if payload.options else None) or settings.text_model,
     }
 
     return LLMMessageResponse(
