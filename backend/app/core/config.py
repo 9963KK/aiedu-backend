@@ -39,6 +39,25 @@ class Settings(BaseSettings):
     def text_api_key(self) -> str | None:
         return self.txt_api_key
 
+    # ---- Materials / Multimodal ingest settings ----
+    storage_tmp_dir: str = Field(default="/tmp/aiedu_uploads", alias="STORAGE_TMP_DIR")
+    upload_max_mb: int = Field(default=200, alias="UPLOAD_MAX_MB")
+    video_max_mb: int = Field(default=500, alias="VIDEO_MAX_MB")
+    audio_max_minutes: int = Field(default=120, alias="AUDIO_MAX_MINUTES")
+
+    # Vision model for PDF/PPT/Image parsing (placeholder configuration)
+    vqa_provider: str | None = Field(default=None, alias="VQA_PROVIDER")
+    vqa_base_url: str | None = Field(default=None, alias="VQA_BASEURL")
+    vqa_model: str | None = Field(default=None, alias="VQA_MODEL")
+    vqa_api_key: str | None = Field(default=None, alias="VQA_APIKEY")
+
+    # ASR model for audio/video transcription (placeholder configuration)
+    asr_provider: str | None = Field(default=None, alias="ASR_PROVIDER")
+    asr_base_url: str | None = Field(default=None, alias="ASR_BASEURL")
+    asr_model: str | None = Field(default=None, alias="ASR_MODEL")
+    asr_api_key: str | None = Field(default=None, alias="ASR_APIKEY")
+    asr_language: str | None = Field(default="auto", alias="ASR_LANGUAGE")
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -314,25 +314,66 @@ data: {"type":"error","message":"模型超时"}   # 可选，遇到异常时发�
 
 ### 6.1 材料上传
 
-- **方法**：`POST`
-- **路径**：`/materials`
-- **说明**：接收文件，保存至对象存储，触发解析任务。
-- **响应**：返回 `materialId`、任务状态。
+- 方法：`POST`
+- 路径：`/materials`
+- Content-Type：`multipart/form-data`
+- 表单字段：
+  - `file` 二进制文件（允许：txt,pdf,ppt,pptx,doc,docx,jpg,jpeg,png,mp3,m4a,wav,mp4）
+  - `courseId`（可选）课程归属
+  - `title`（可选）展示名（默认取文件名）
+  - `tags`（可选）string[] 的 JSON
+- 说明：本期仅落地“本地临时目录”，不做 S3 持久化。解析任务进入队列后续处理。
+- 成功响应
+
+```json
+{
+  "data": {
+    "materialId": "mat_123",
+    "status": "uploaded",
+    "mime": "application/pdf",
+    "originalName": "CS101-Intro.pdf",
+    "sizeBytes": 1048576
+  },
+  "error": null
+}
+```
 
 ### 6.2 材料解析状态
 
-- **方法**：`GET`
-- **路径**：`/materials/{materialId}`
-- **说明**：查询解析进度、错误信息、生成的摘要等。
+- 方法：`GET`
+- 路径：`/materials/{materialId}`
+- 说明：查询解析进度、错误信息、解析通道（vision|asr|text）等。
 
 ### 6.3 文本片段检索
 
-- **方法**：`GET`
-- **路径**：`/materials/{materialId}/chunks`
-- **查询参数**：`search`、`page` 等
-- **说明**：返回结构化文本块，供聊天上下文使用。
+- 方法：`GET`
+- 路径：`/materials/{materialId}/chunks`
+- 查询参数：`offset`（默认 0）、`limit`（默认 100，最大 1000）、`type`=text|caption、`search`（可选）
+- 说明：返回结构化文本块（或字幕），供聊天上下文使用。
 
-### 6.4 流式引用广播
+### 6.4 获取原始文件下载链接（占位）
+
+- 方法：`GET`
+- 路径：`/materials/{materialId}/original-url`
+- 说明：返回 S3 预签名 URL。由于当前未接入 S3，本接口在本期返回 `501 Not Implemented`，响应体示例：
+
+```json
+{
+  "error": {
+    "code": "NOT_IMPLEMENTED",
+    "message": "S3 not configured: set S3_ENDPOINT/S3_BUCKET/S3_ACCESS_KEY/S3_SECRET_KEY to enable presigned URLs"
+  }
+}
+```
+
+### 6.5 重新解析/切换解析通道（可选）
+
+- 方法：`POST`
+- 路径：`/materials/{materialId}/parse`
+- 请求体：`{"mode":"auto|vision|asr|text"}`
+- 说明：当用户希望强制走某通道时触发重解析。本期可直接返回“已接受”。
+
+### 6.6 流式引用广播
 
 - SSE 事件可扩展字段（例如 `{"type":"meta","reference":["materialId","chunkId"]}`）提醒前端展示引用来源。
 
