@@ -211,7 +211,7 @@ const Index = () => {
                 variant="ghost"
                 size="icon"
                 onClick={handleNewChat}
-                className="rounded-full border bg-card shadow hover:bg-muted"
+                className="rounded-full border bg-card shadow hover:bg-muted text-foreground hover:text-foreground focus:text-foreground"
                 title="返回欢迎页 / 新会话"
                 aria-label="返回欢迎页"
               >
