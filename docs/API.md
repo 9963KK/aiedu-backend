@@ -1,5 +1,7 @@
 # AI 教育助手 - API 接口文档
 
+> 重要：本文件为历史版本，最新接口规范请参考 `docs/api-interaction.md`（本项目唯一规范来源）。以 `docs/api-interaction.md` 为准。
+
 ## 概述
 
 本文档定义了 AI 教育助手前端所需的核心 API 接口规范。

@@ -1,5 +1,7 @@
 # AIEDU 前后端接口说明（规范版）
 
+> 说明：本文件为唯一规范来源（Source of Truth）。`docs/API.md` 为历史版本，仅供参考。
+
 本文定义当前系统的 HTTP 接口，覆盖健康检测、LLM 对话、课程管理、用户设置，以及多模态扩展规划。所有接口默认挂载在 `/api` 前缀下，示例基地址为 `http://127.0.0.1:8000/api`。
 
 ---
@@ -10,9 +12,10 @@
 |----------------|------|
 | 版本控制       | 预留 `/api/v1` 命名空间；当前处于 v1 试运行阶段。|
 | 鉴权           | 暂时匿名访问；未来可通过 `Authorization: Bearer <token>` 接入 Supabase Auth 或自有 JWT。|
-| 响应格式       | 推荐统一结构 `{ "data": ..., "error": null }`；异常时 `{ "data": null, "error": { "code": "...", "message": "..." } }`。|
+| 返回封装       | v1 已上线的 `health`/`test`/`llm` 接口为资源直出；新增模块按 `{ "data": ..., "error": null }` 统一封装，后续将逐步迁移统一。|
+| 字段命名       | JSON 字段使用 camelCase（如 `sessionId`、`tokensUsed`）；查询参数使用 camelCase（如 `page`、`pageSize`）。|
 | 时间格式       | ISO8601 UTC，例如 `2024-08-22T10:15:00Z`。|
-| 分页参数       | `page`（默认 1）、`page_size`（默认 20，最大 100）。|
+| 分页参数       | `page`（默认 1）、`pageSize`（默认 20，最大 100）。|
 
 ---
 
@@ -80,22 +83,19 @@ React 首页（`Index`）及后续聊天功能依赖下列接口。系统区分�
 }
 ```
 
-- **成功响应**
+- **成功响应（v1 实际返回：资源直出）**
 
 ```json
 {
-  "data": {
-    "sessionId": "session_456",
-    "messageId": "msg_789",
-    "content": "前序遍历按照“根-左-右”的顺序访问节点...",
-    "tokensUsed": {
-      "prompt": 120,
-      "completion": 180,
-      "total": 300
-    },
-    "metadata": {}
+  "sessionId": "session_456",
+  "messageId": "msg_789",
+  "content": "前序遍历按照“根-左-右”的顺序访问节点...",
+  "tokensUsed": {
+    "prompt": 120,
+    "completion": 180,
+    "total": 300
   },
-  "error": null
+  "metadata": {}
 }
 ```
 
@@ -176,7 +176,7 @@ data: {"type":"error","message":"模型超时"}   # 可选，遇到异常时发�
 
 - **方法**：`GET`
 - **路径**：`/courses`
-- **查询参数**：`page`, `page_size`
+- **查询参数**：`page`, `pageSize`
 - **说明**：返回完整课程列表。
 - **成功响应**
 
@@ -195,7 +195,7 @@ data: {"type":"error","message":"模型超时"}   # 可选，遇到异常时发�
     ],
     "pagination": {
       "page": 1,
-      "page_size": 20,
+      "pageSize": 20,
       "total": 6
     }
   },
