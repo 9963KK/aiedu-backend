@@ -239,9 +239,9 @@ const Index = () => {
 
           {/* 聊天页输入框 */}
           <div className="fixed left-0 right-0 bottom-6 md:bottom-8 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
-            <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-3 pt-2">
-              <div className="flex items-center gap-3 px-6 py-4 rounded-full border-2 bg-card shadow-2xl hover:shadow-xl transition-shadow">
-                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-2 pt-1">
+              <div className="flex items-center gap-3 px-5 py-3 md:px-6 md:py-3 rounded-full border-2 bg-card shadow-2xl hover:shadow-xl transition-shadow">
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8 shrink-0">
                   <Plus className="w-5 h-5" />
                 </Button>
                 <Input
@@ -252,7 +252,7 @@ const Index = () => {
                   className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
                 />
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8">
                     <Mic className="w-5 h-5" />
                   </Button>
                   {loading ? (
@@ -261,12 +261,12 @@ const Index = () => {
                       size="icon"
                       variant="secondary"
                       onClick={handleStop}
-                      className="h-10 w-10 rounded-full"
+                      className="h-9 w-9 md:h-10 md:w-10 rounded-full"
                     >
                       <Square className="w-5 h-5" />
                     </Button>
                   ) : (
-                    <Button type="submit" size="icon" className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90">
+                    <Button type="submit" size="icon" className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary hover:bg-primary/90">
                       <ArrowUp className="w-5 h-5" />
                     </Button>
                   )}
