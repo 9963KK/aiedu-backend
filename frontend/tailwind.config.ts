@@ -85,7 +85,32 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      animationDelay: {
+        '100': '100ms',
+        '200': '200ms',
+        '300': '300ms',
+        '500': '500ms',
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function ({ addUtilities }: any) {
+      const newUtilities = {
+        '.delay-100': {
+          'animation-delay': '100ms',
+        },
+        '.delay-200': {
+          'animation-delay': '200ms',
+        },
+        '.delay-300': {
+          'animation-delay': '300ms',
+        },
+        '.delay-500': {
+          'animation-delay': '500ms',
+        },
+      };
+      addUtilities(newUtilities);
+    },
+  ],
 } satisfies Config;

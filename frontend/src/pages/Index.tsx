@@ -128,17 +128,19 @@ const Index = () => {
   };
 
   const hero = (
-    <main className="container mx-auto px-4 flex items-center justify-center" style={{ minHeight: "calc(100vh - 80px)" }}>
+    <main className="container mx-auto px-4 flex items-center justify-center animate-in fade-in zoom-in-95 duration-700" style={{ minHeight: "calc(100vh - 80px)" }}>
       <div className="w-full max-w-4xl space-y-12 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground">今天想学点什么？</h1>
-        <form onSubmit={handleSubmit} className="relative">
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground animate-in slide-in-from-bottom-4 duration-700">
+          今天想学点什么?
+        </h1>
+        <form onSubmit={handleSubmit} className="relative animate-in slide-in-from-bottom-8 duration-700 delay-200">
           <div className="relative flex items-center gap-3 px-6 py-4 rounded-full border bg-card shadow-lg hover:shadow-xl transition-shadow">
             <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0">
               <Plus className="w-5 h-5" />
             </Button>
             <Input
               type="text"
-              placeholder="询问任何问题，或添加资料开始学习..."
+              placeholder="询问任何问题,或添加资料开始学习..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
@@ -158,16 +160,43 @@ const Index = () => {
   );
 
   const chat = (
-    <main className="flex-1">
+    <main className="flex-1 animate-in fade-in duration-500">
       <div className="mx-auto max-w-3xl h-full flex flex-col px-4">
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto py-4 space-y-3">
           {messages.map((m, idx) => (
-            <div key={idx} className="rounded-lg border p-4 bg-card">
-              <div className="text-xs text-muted-foreground mb-1">{m.role === "user" ? "你" : "AI"}</div>
-              <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+            <div
+              key={idx}
+              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
+            >
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  m.role === "user"
+                    ? "bg-primary text-primary-foreground ml-auto"
+                    : "bg-card border shadow-sm"
+                }`}
+              >
+                <div className="text-xs opacity-70 mb-1 font-medium">
+                  {m.role === "user" ? "你" : "AI"}
+                </div>
+                <div className="whitespace-pre-wrap leading-relaxed text-sm">
+                  {m.content}
+                </div>
+              </div>
             </div>
           ))}
-          {loading && <div className="rounded-lg border p-4 bg-card text-muted-foreground">正在思考...</div>}
+          {loading && (
+            <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-300">
+              <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-card border shadow-sm">
+                <div className="text-xs opacity-70 mb-1 font-medium">AI</div>
+                <div className="flex items-center gap-1 text-muted-foreground text-sm">
+                  <span className="animate-bounce">●</span>
+                  <span className="animate-bounce delay-100">●</span>
+                  <span className="animate-bounce delay-200">●</span>
+                  <span className="ml-1">正在思考...</span>
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
         <form onSubmit={handleSubmit} className="sticky bottom-0 border-t bg-background py-4">
