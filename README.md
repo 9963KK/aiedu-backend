@@ -17,6 +17,7 @@ This repository hosts both the FastAPI backend and the React/Lovable frontend fo
 ### Local setup
 
 ```bash
+cd backend
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -27,6 +28,7 @@ uvicorn app.main:app --reload
 ### Tests
 
 ```bash
+cd backend
 pip install .[dev]  # optional: install test deps from pyproject
 pytest
 ```
@@ -34,13 +36,16 @@ pytest
 ### Layout
 
 ```
-app/
-  core/          # configuration, logging, and startup hooks
-  api/           # FastAPI routers and dependencies
-  services/      # business logic and orchestration
-  clients/       # integrations with LLM providers or external APIs
-  schemas/       # pydantic models shared across layers
-tests/            # pytest-based test suite
+backend/
+  app/
+    core/          # configuration, logging, and startup hooks
+    api/           # FastAPI routers and dependencies
+    services/      # business logic and orchestration
+    clients/       # integrations with LLM providers or external APIs
+    schemas/       # pydantic models shared across layers
+  tests/           # pytest-based test suite
+  requirements.txt
+  pyproject.toml
 ```
 
 ## Frontend (Lovable / Vite + React)
@@ -53,6 +58,7 @@ tests/            # pytest-based test suite
 The UI is generated and synced via Lovable. You can continue iterating on the hosted editor or work locally:
 
 ```bash
+cd frontend
 # install dependencies (requires Node.js; nvm recommended)
 npm install
 
