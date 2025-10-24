@@ -170,7 +170,7 @@ const Index = () => {
             >
               {/* AI 头像在左侧 */}
               {m.role === "assistant" && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-end">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -191,7 +191,7 @@ const Index = () => {
 
               {/* 用户头像在右侧 */}
               {m.role === "user" && (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style={{ background: 'linear-gradient(to bottom right, rgb(104, 82, 211), rgb(88, 64, 191))' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 self-end" style={{ background: 'linear-gradient(to bottom right, rgb(104, 82, 211), rgb(88, 64, 191))' }}>
                   <User className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -201,14 +201,14 @@ const Index = () => {
           {/* 加载状态 */}
           {loading && (
             <div className="flex gap-2 justify-start animate-in slide-in-from-bottom-2 duration-300">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-end">
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div className="max-w-[70%] rounded-2xl px-4 py-2.5 bg-muted">
-                <div className="flex items-center gap-1 text-muted-foreground text-[15px]">
-                  <span className="animate-bounce">●</span>
-                  <span className="animate-bounce delay-100">●</span>
-                  <span className="animate-bounce delay-200">●</span>
+                <div className="flex items-center gap-1.5 text-[15px]">
+                  <span className="animate-bounce text-gray-400">●</span>
+                  <span className="animate-bounce delay-100 text-gray-400">●</span>
+                  <span className="animate-bounce delay-200 text-gray-400">●</span>
                 </div>
               </div>
             </div>
@@ -225,11 +225,11 @@ const Index = () => {
               className="flex-1"
             />
             {loading ? (
-              <Button type="button" size="icon" variant="secondary" onClick={handleStop} className="h-10 w-10">
-                <Square className="w-5 h-5" />
+              <Button type="button" size="icon" variant="secondary" onClick={handleStop} className="h-10 w-10 flex-shrink-0">
+                <Square className="w-4 h-4" />
               </Button>
             ) : (
-              <Button type="submit" size="icon" className="h-10 w-10">
+              <Button type="submit" size="icon" className="h-10 w-10 flex-shrink-0 rounded-full">
                 <ArrowUp className="w-5 h-5" />
               </Button>
             )}
