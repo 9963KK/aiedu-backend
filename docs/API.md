@@ -8,7 +8,7 @@
 - 基础 URL: `https://your-api-domain.com/api/v1`
 - 数据格式: JSON
 - 字符编码: UTF-8
-- 认证方式: JWT Bearer Token (Supabase Auth)
+- 认证方式: JWT Bearer Token
 
 ---
 

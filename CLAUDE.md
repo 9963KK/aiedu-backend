@@ -10,7 +10,7 @@
 
 **技术栈:**
 - 前端: React + TypeScript + Vite + shadcn/ui + TanStack Query
-- 后端: Supabase (数据库 + 认证)
+- 后端: REST API (待对接)
 - 部署: Lovable Platform
 
 ---
@@ -201,8 +201,9 @@ src/
 │   └── layouts/         # 布局组件
 ├── pages/               # 页面组件
 ├── lib/                 # 工具函数
-└── integrations/        # 第三方集成
-    └── supabase/        # Supabase 配置
+│   └── api-client.ts    # API 客户端配置
+└── config/              # 配置文件
+    └── constants.ts     # 常量定义
 ```
 
 ### 命名规范
@@ -221,21 +222,13 @@ src/
 
 ```typescript
 // src/api/courses.ts
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api-client';
 
 export async function getCourses(params?: {
   page?: number;
   pageSize?: number;
 }) {
-  const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .range(
-      (params?.page ?? 0) * (params?.pageSize ?? 20),
-      ((params?.page ?? 0) + 1) * (params?.pageSize ?? 20) - 1
-    );
-
-  if (error) throw error;
+  const { data } = await apiClient.get('/courses', { params });
   return data;
 }
 ```
@@ -384,12 +377,12 @@ export async function getCourses() {
 2. 更新文档说明实际格式
 3. 如果差异过大,与后端沟通是否可以调整
 
-### Q3: 如何处理 Supabase 直接查询 vs REST API?
+### Q3: 如何处理 API 认证?
 
 **A:**
-- 简单 CRUD: 直接使用 Supabase Client
-- 复杂业务逻辑: 使用后端 REST API
-- 在文档中明确标注使用哪种方式
+- 使用 JWT Token 认证
+- 在 API 客户端中统一配置请求拦截器
+- 自动在请求头中添加 Authorization
 
 ---
 
