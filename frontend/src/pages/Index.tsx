@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Mic, ArrowUp, Square, Bot } from "lucide-react";
+import { Plus, Mic, ArrowUp, Square, Bot, ArrowLeft } from "lucide-react";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { useEffect, useRef, useState } from "react";
 
@@ -206,9 +206,16 @@ const Index = () => {
       {showChat && (
         <main className="flex-1 relative animate-in fade-in duration-300">
           <div className="mx-auto max-w-3xl h-full flex flex-col px-4">
-            <div className="py-2 flex items-center justify-end">
-              <Button variant="secondary" size="sm" onClick={handleNewChat}>
-                返回欢迎页 / 新会话
+            <div className="py-2 flex items-center justify-start">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNewChat}
+                className="rounded-full border bg-card shadow hover:bg-muted"
+                title="返回欢迎页 / 新会话"
+                aria-label="返回欢迎页"
+              >
+                <ArrowLeft className="w-5 h-5" />
               </Button>
             </div>
             <div className="flex-1 overflow-y-auto py-4 space-y-4 pb-32">
