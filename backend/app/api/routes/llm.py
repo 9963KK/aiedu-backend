@@ -147,6 +147,7 @@ async def stream_message(
                 temperature=options.temperature,
             ):
                 if chunk.type == "content" and chunk.content:
+                    # 去掉首个 token 的前导空白，以避免前端出现空白行
                     yield _format_sse({"type": "token", "content": chunk.content})
                 elif chunk.type == "end":
                     total_tokens = chunk.usage.get("total_tokens") if chunk.usage else None

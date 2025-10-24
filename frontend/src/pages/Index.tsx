@@ -66,7 +66,14 @@ const Index = () => {
             continue;
           }
           if (payload.type === "token" && typeof payload.content === "string") {
-            assistant += payload.content;
+            let token = payload.content as string;
+            if (assistant.length === 0) {
+              token = token.replace(/^[\s\r\n]+/, "");
+            }
+            if (token.length === 0) {
+              continue;
+            }
+            assistant += token;
             // 更新最后一条助手消息内容
             setMessages((prev) => {
               const next = [...prev];
