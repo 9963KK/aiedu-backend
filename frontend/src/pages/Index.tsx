@@ -240,6 +240,9 @@ const Index = () => {
           <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-3 pt-2">
               <div className="flex items-center gap-3 px-6 py-4 rounded-full border-2 bg-card shadow-2xl hover:shadow-xl transition-shadow">
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                  <Plus className="w-5 h-5" />
+                </Button>
                 <Input
                   type="text"
                   placeholder="继续提问..."
@@ -247,21 +250,26 @@ const Index = () => {
                   onChange={(e) => setQuery(e.target.value)}
                   className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
                 />
-                {loading ? (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="secondary"
-                    onClick={handleStop}
-                    className="h-10 w-10 rounded-full shrink-0"
-                  >
-                    <Square className="w-5 h-5" />
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+                    <Mic className="w-5 h-5" />
                   </Button>
-                ) : (
-                  <Button type="submit" size="icon" className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 shrink-0">
-                    <ArrowUp className="w-5 h-5" />
-                  </Button>
-                )}
+                  {loading ? (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="secondary"
+                      onClick={handleStop}
+                      className="h-10 w-10 rounded-full"
+                    >
+                      <Square className="w-5 h-5" />
+                    </Button>
+                  ) : (
+                    <Button type="submit" size="icon" className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90">
+                      <ArrowUp className="w-5 h-5" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </form>
           </div>
