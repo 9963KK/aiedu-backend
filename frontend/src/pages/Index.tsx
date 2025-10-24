@@ -174,7 +174,7 @@ const Index = () => {
             >
               {/* AI 头像在左侧 */}
               {m.role === "assistant" && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-end">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-start">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -195,7 +195,7 @@ const Index = () => {
 
               {/* 用户头像在右侧 */}
               {m.role === "user" && (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 self-end" style={{ background: 'linear-gradient(to bottom right, rgb(104, 82, 211), rgb(88, 64, 191))' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 self-start" style={{ background: 'linear-gradient(to bottom right, rgb(104, 82, 211), rgb(88, 64, 191))' }}>
                   <User className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -205,7 +205,7 @@ const Index = () => {
           {/* 加载状态 - 流式输出时不显示,只在等待首个 token 时显示 */}
           {loading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-2 justify-start animate-in slide-in-from-bottom-2 duration-300">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-end">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 self-start">
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div className="rounded-2xl px-5 py-3 bg-muted flex items-center gap-2">
