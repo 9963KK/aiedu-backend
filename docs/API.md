@@ -89,78 +89,9 @@ npm run dev
 
 —
 
-## 4. LLM 对话
+## 4. 已废弃接口
 
-后端：`backend/app/api/routes/llm.py`，服务：`backend/app/services/llm_service.py`
-
-### 4.1 非流式生成
-- 方法：POST
-- 路径：`/llm/messages`
-- 请求体：
-
-```json
-{
-  "message": "解释一下二叉树的前序遍历",
-  "courseId": "course_123",
-  "sessionId": "session_456",
-  "context": {
-    "previousMessages": [
-      {"role": "user", "content": "什么是二叉树？"},
-      {"role": "assistant", "content": "二叉树是..."}
-    ],
-    "metadata": { "systemPrompt": "你是一名严谨的 CS 助教" }
-  },
-  "options": { "model": "gpt-4o-mini", "temperature": 0.2 }
-}
-```
-
-- 成功响应：
-
-```json
-{
-  "sessionId": "session_456",
-  "messageId": "msg_789",
-  "content": "前序遍历按照“根-左-右”的顺序访问节点...",
-  "tokensUsed": { "prompt": 120, "completion": 180, "total": 300 },
-  "metadata": { "provider": "openai", "model": "gpt-4o-mini" }
-}
-```
-
-### 4.2 流式生成（SSE）
-- 方法：POST
-- 路径：`/llm/messages/stream`
-- 协议：Server-Sent Events（响应头 `Content-Type: text/event-stream`）
-- 请求体：与 4.1 相同
-- 事件流格式：
-
-```txt
-data: {"type":"start","sessionId":"session_456","messageId":"msg_789"}
-
-data: {"type":"token","content":"前序遍历"}
-data: {"type":"token","content":"按照“根-左-右”"}
-...
-
-data: {"type":"end","messageId":"msg_789","totalTokens":150}
-
-data: {"type":"error","message":"模型超时"}
-```
-
-注意：每个事件以 `data:` 开头，后跟 JSON 字符串，并以空行分隔。
-
-### 4.3 Prompt 直出（兼容接口）
-- 方法：POST
-- 路径：`/llm/prompt`
-- 请求体：
-
-```json
-{ "prompt": "解释栈与队列的区别", "context": "你是一名 CS 助教" }
-```
-
-- 响应：
-
-```json
-{ "response": "栈是后进先出（LIFO），队列是先进先出（FIFO）..." }
-```
+原 `/llm/*` 系列接口（`/llm/messages`、`/llm/messages/stream`、`/llm/prompt`）已废弃，请全部迁移到 `/qa/*`。本文档已移除详细说明。
 
 —
 
@@ -237,7 +168,7 @@ data: {"type":"error","message":"模型超时"}
 
 —
 
-## 7. 问答接口
+## 6. 问答接口
 
 ### 7.1 即时提问（多模态直答）
 - 方法：POST `/qa/instant`
@@ -254,10 +185,10 @@ data: {"type":"error","message":"模型超时"}
 
 —
 
-## 6. 错误约定与返回风格
+## 7. 错误约定与返回风格
 
 当前已上线接口存在两种返回风格：
-- 资源直出（如 `/health`、`/test/ping`、`/llm/messages`）
+- 资源直出（如 `/health`、`/test/ping`）
 - 统一封装 `{ "data": ..., "error": null }`（如 `materials` 模块）
 
 短期内兼容共存，后续将逐步统一为封装风格并在此文档同步更新。
@@ -270,81 +201,6 @@ data: {"type":"error","message":"模型超时"}
 
 —
 
-## 7. 前端集成要点
-
-### 7.1 LLM 对话集成
-
-代码位置：`frontend/src/pages/Index.tsx`
-- 使用 `fetch('/api/llm/messages/stream', { method: 'POST', headers: { 'Content-Type': 'application/json' } })` 开启 SSE 流。
-- 前端解析规则：以 `\n\n` 分隔事件,行以 `data:` 开头;事件类型包含 `start`、`token`、`end`、`error`。
-- 会话处理：保存 `sessionId`,携带最近若干条 `previousMessages` 作为上下文。
-- **材料引用**：在 `context` 中添加 `materialIds` 数组,传递已上传材料的 ID 列表,供 LLM 检索使用。
-
-示例请求:
-
-```json
-{
-  "message": "这个文档讲了什么?",
-  "sessionId": "session_456",
-  "context": {
-    "previousMessages": [...],
-    "materialIds": ["mat_123", "mat_456"]  // 已上传的材料 ID
-  }
-}
-```
-
-### 7.2 文件上传集成
-
-代码位置：`frontend/src/components/FileUpload/` 和 `frontend/src/hooks/useFileUpload.ts`
-
-**核心组件:**
-
-- `FileUploadButton` - 文件选择触发器
-- `FileUploadProgress` - 上传进度显示(圆形进度条)
-- `FileCard` - 文件卡片显示
-- `useFileUpload` Hook - 上传队列管理
-
-**使用示例:**
-
-```tsx
-import { useFileUpload } from '@/hooks/useFileUpload';
-import { FileUploadButton } from '@/components/FileUpload/FileUploadButton';
-import { FileCard } from '@/components/FileUpload/FileCard';
-
-function ChatInterface() {
-  const { files, addFiles, removeFile, getUploadedMaterialIds } = useFileUpload();
-
-  return (
-    <>
-      <FileUploadButton onFilesSelected={addFiles} />
-      {files.map(file => (
-        <FileCard key={file.id} file={file} onRemove={() => removeFile(file.id)} />
-      ))}
-    </>
-  );
-}
-```
-
-**上传流程:**
-
-1. 用户选择文件 → 前端验证(类型、大小)
-2. 调用 `uploadMaterial()` 上传 → 显示进度条(XHR upload progress)
-3. 上传成功获得 `materialId` → 自动轮询处理状态(`uploaded` → `processing` → `ready`)
-4. 材料就绪后可在对话中引用
-
-**并发控制:**
-
-- 最多同时上传 3 个文件
-- 队列自动管理,超出部分排队等待
-
-**文件类型与限制:**
-
-- 支持类型: txt,pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,mp3,m4a,wav,mp4
-- 普通文件: 最大 200MB
-- 视频文件: 最大 500MB
-
-Vite 代理（开发）：请求以 `/api` 开头自动转发到后端，无需额外 CORS 配置。
-
 —
 
 ## 8. 变更管理要求
@@ -354,7 +210,7 @@ Vite 代理（开发）：请求以 `/api` 开头自动转发到后端，无需�
 
 —
 
-文档版本：v1.1.0（新增多模态文件上传功能）
+文档版本：v1.2.0（废弃 /llm/*，统一至 /qa/*；新增索引触发）
 最后更新：2025-10-25
 维护者：AIEDU 开发团队
 
