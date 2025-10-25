@@ -21,15 +21,17 @@ export function FileChip({ file, onRemove }: FileChipProps) {
 
   // 判断状态
   const isUploading = status === 'uploading';
-  const isProcessing = status === 'processing' || (status === 'success' && materialStatus === 'processing');
-  const isSuccess = status === 'success' && materialStatus === 'ready';
+  const isUploaded = status === 'success' && materialStatus === 'uploaded'; // 上传成功,等待解析
+  const isProcessing = status === 'processing' || (status === 'success' && materialStatus === 'processing'); // 解析中
+  const isReady = status === 'success' && materialStatus === 'ready'; // 解析成功
   const isError = status === 'error';
 
   // 计算边框颜色
   const getBorderClass = () => {
-    if (isSuccess) return 'border-green-500 border-2';
-    if (isError) return 'border-red-500 border-2';
-    if (isProcessing) return 'border-blue-500 border-2';
+    if (isReady) return 'border-green-500 border-2'; // 解析成功 - 绿色
+    if (isError) return 'border-red-500 border-2'; // 错误 - 红色
+    if (isProcessing) return 'border-blue-500 border-2'; // 解析中 - 蓝色
+    if (isUploaded) return 'border-yellow-500 border-2'; // 上传成功,等待解析 - 黄色
     return 'border-border/50';
   };
 
@@ -91,11 +93,16 @@ export function FileChip({ file, onRemove }: FileChipProps) {
 
         {/* 右侧: 状态图标 */}
         <div className="relative w-5 h-5 flex-shrink-0">
-          {isProcessing ? (
-            // 处理中 - 旋转加载器
+          {isUploaded ? (
+            // 上传成功,等待解析 - 黄色时钟图标
+            <div className="w-full h-full flex items-center justify-center animate-in zoom-in duration-200">
+              <Loader2 className="w-5 h-5 text-yellow-500" />
+            </div>
+          ) : isProcessing ? (
+            // 解析中 - 蓝色旋转加载器
             <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-          ) : isSuccess ? (
-            // 成功 - 绿色对勾
+          ) : isReady ? (
+            // 解析成功 - 绿色对勾
             <div className="w-full h-full flex items-center justify-center animate-in zoom-in duration-200">
               <Check className="w-5 h-5 text-green-500" strokeWidth={3} />
             </div>
