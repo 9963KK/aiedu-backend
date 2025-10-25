@@ -22,11 +22,11 @@
 - 应用
   - `APP_NAME`（默认 AIEDU Backend）
   - `APP_DEBUG`（默认 false）
-- 文本大模型（OpenAI 兼容 Chat Completions）
-  - `TXT_PROVIDER`（默认 openai，用于标识供应商名）
-  - `TXT_BASEURL`（默认 `https://api.openai.com/v1`）
-  - `TXT_MODEL`（默认 `gpt-4o-mini`）
-  - `TXT_APIKEY`（必填，用于后端直连 LLM）
+- 多模态大模型（VLM，OpenAI 兼容接口）
+  - `VLM_PROVIDER`（默认 openai）
+  - `VLM_BASEURL`（默认 `https://api.openai.com/v1`）
+  - `VLM_MODEL`（示例 `gpt-4o-mini`）
+  - `VLM_APIKEY`（密钥）
   - `REQUEST_TIMEOUT_SECONDS`（默认 60）
 - 多模态临时存储/解析（当前存本地临时目录）
   - `STORAGE_TMP_DIR`（默认 `/tmp/aiedu_uploads`）
@@ -215,7 +215,16 @@ data: {"type":"error","message":"模型超时"}
 
 - 异常：若材料非解析中或已完成/失败/已取消，返回 `409 CONFLICT`。
 
-### 5.7 状态机与取消/删除协作
+### 5.7 触发后台索引（占位）
+- 方法：POST `/materials/{materialId}/index`
+- 说明：在“知识库问答结束后”，由前端调用此接口触发后台解析/Markdown 化/分块与 embedding，立即返回 `202 Accepted`。
+- 响应：
+
+```json
+{ "data": { "accepted": true }, "error": null }
+```
+
+### 5.8 状态机与取消/删除协作
 - 状态流转：`uploaded → queued → processing → ready | failed | cancelled`
 - 前端取消约定：
   - 上传阶段（XHR 未完成）：前端 `abort()`，无需调用后端；不会产生 `materialId`。
@@ -225,6 +234,23 @@ data: {"type":"error","message":"模型超时"}
 - 进度约定：
   - 上传进度由前端监听 `XMLHttpRequest.upload.onprogress` 并展示；后端不返回上传百分比。
   - 解析本期不提供细粒度进度，仅在完成时进入 `ready/failed`；如需更细粒度可扩展事件或轮询。
+
+—
+
+## 7. 问答接口
+
+### 7.1 即时提问（多模态直答）
+- 方法：POST `/qa/instant`
+- 形态A：`multipart/form-data`
+  - 字段：`message`（文本问题，必填）、`file`（可多文件，选填）、`hints`（JSON 字符串，选填）
+- 形态B：`application/json`
+  - 体：`{ "message": "...", "materialIds": ["mat_123"], "hints": { "pages": [1,3], "discipline": "cs" } }`
+- 响应：SSE 事件流（`start/token/end/error`），由 VLM 直接解析回答；不依赖材料解析/向量库。
+
+### 7.2 知识库提问（占位）
+- 方法：POST `/qa/knowledge`
+- 体：`{ "message": "...", "courseId": "course_xxx", "materialIds": ["mat_1"], "topK": 8 }`
+- 当前：返回 `501 Not Implemented`。未来将走（BM25→向量）检索增强再回答。
 
 —
 

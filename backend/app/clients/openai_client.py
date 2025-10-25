@@ -33,7 +33,7 @@ class OpenAIClient(LLMClient):
     ) -> LLMGenerationResult:
         """Call the OpenAI chat completions API and return the assistant reply."""
         if not self._api_key:
-            msg = "Text LLM API key must be provided (TXT_APIKEY)."
+            msg = "LLM API key must be provided (VLM_APIKEY)."
             raise ValueError(msg)
 
         payload = self._build_payload(messages=messages, options=options)
@@ -74,7 +74,7 @@ class OpenAIClient(LLMClient):
     ) -> AsyncIterator[LLMStreamChunk]:
         """Streaming chat completions using OpenAI's streamed responses."""
         if not self._api_key:
-            msg = "Text LLM API key must be provided (TXT_APIKEY)."
+            msg = "LLM API key must be provided (VLM_APIKEY)."
             raise ValueError(msg)
 
         payload = self._build_payload(messages=messages, options=options)

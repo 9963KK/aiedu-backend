@@ -177,6 +177,19 @@ async def cancel_parse(material_id: str) -> dict[str, Any]:
     return {"data": {"cancelled": True}, "error": None}
 
 
+@router.post("/{material_id}/index", status_code=status.HTTP_202_ACCEPTED)
+async def trigger_index(material_id: str) -> dict[str, Any]:
+    """Trigger background parsing/indexing for a material (placeholder).
+
+    This validates that the material exists in tmp storage and immediately
+    returns 202 Accepted. Background job wiring will be added later.
+    """
+    tmp_dir = _ensure_tmp_dir() / material_id
+    if not tmp_dir.exists():
+        raise HTTPException(status_code=404, detail="Material not found")
+    return {"data": {"accepted": True}, "error": None}
+
+
 @router.get("")
 async def list_materials(limit: int = 50, offset: int = 0) -> dict[str, Any]:
     base = _ensure_tmp_dir()

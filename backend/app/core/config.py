@@ -14,30 +14,30 @@ class Settings(BaseSettings):
     app_name: str = Field(default="AIEDU Backend", alias="APP_NAME")
     debug: bool = Field(default=False, alias="APP_DEBUG")
 
-    # Text modality variables (required going forward)
-    txt_provider: str | None = Field(default=None, alias="TXT_PROVIDER")
-    txt_base_url: str | None = Field(default=None, alias="TXT_BASEURL")
-    txt_model: str | None = Field(default=None, alias="TXT_MODEL")
-    txt_api_key: str | None = Field(default=None, alias="TXT_APIKEY")
+    # Multimodal vision-language model (VLM) for instant Q&A
+    vlm_provider: str | None = Field(default=None, alias="VLM_PROVIDER")
+    vlm_base_url: str | None = Field(default=None, alias="VLM_BASEURL")
+    vlm_model: str | None = Field(default=None, alias="VLM_MODEL")
+    vlm_api_key: str | None = Field(default=None, alias="VLM_APIKEY")
     request_timeout_seconds: int = Field(default=60, alias="REQUEST_TIMEOUT_SECONDS")
 
-    # ---- Derived accessors (TXT_* only) ----
+    # ---- Derived accessors (VLM_* primary) ----
     @property
     def text_provider(self) -> str:
-        provider = (self.txt_provider or "openai").lower()
+        provider = (self.vlm_provider or "openai").lower()
         return provider
 
     @property
     def text_base_url(self) -> str:
-        return self.txt_base_url or "https://api.openai.com/v1"
+        return self.vlm_base_url or "https://api.openai.com/v1"
 
     @property
     def text_model(self) -> str:
-        return self.txt_model or "gpt-4o-mini"
+        return self.vlm_model or "gpt-4o-mini"
 
     @property
     def text_api_key(self) -> str | None:
-        return self.txt_api_key
+        return self.vlm_api_key
 
     # ---- Materials / Multimodal ingest settings ----
     storage_tmp_dir: str = Field(default="/tmp/aiedu_uploads", alias="STORAGE_TMP_DIR")
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     video_max_mb: int = Field(default=500, alias="VIDEO_MAX_MB")
     audio_max_minutes: int = Field(default=120, alias="AUDIO_MAX_MINUTES")
 
-    # Vision model for PDF/PPT/Image parsing (placeholder configuration)
+    # Vision model for PDF/PPT/Image parsing (optional; if distinct from VLM)
     vqa_provider: str | None = Field(default=None, alias="VQA_PROVIDER")
     vqa_base_url: str | None = Field(default=None, alias="VQA_BASEURL")
     vqa_model: str | None = Field(default=None, alias="VQA_MODEL")

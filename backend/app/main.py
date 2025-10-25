@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from app.api.routes import health, llm, test, materials
+from app.api.routes import health, llm, test, materials, qa
 from app.core.config import settings
 
 
@@ -17,6 +17,7 @@ def create_app() -> FastAPI:
     app.include_router(llm.router, prefix="/api")
     app.include_router(test.router, prefix="/api")
     app.include_router(materials.router, prefix="/api")
+    app.include_router(qa.router, prefix="/api")
     return app
 
 
