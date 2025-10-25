@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     video_max_mb: int = Field(default=500, alias="VIDEO_MAX_MB")
     audio_max_minutes: int = Field(default=120, alias="AUDIO_MAX_MINUTES")
 
+    # MinerU configuration (document/image parsing)
+    mineru_base_url: str | None = Field(default=None, alias="MINERU_BASEURL")
+    mineru_api_key: str | None = Field(default=None, alias="MINERU_APIKEY")
+
     # Vision model for PDF/PPT/Image parsing (placeholder configuration)
     vqa_provider: str | None = Field(default=None, alias="VQA_PROVIDER")
     vqa_base_url: str | None = Field(default=None, alias="VQA_BASEURL")

@@ -34,6 +34,7 @@
   - `VIDEO_MAX_MB`（默认 500）
   - `AUDIO_MAX_MINUTES`（默认 120）
 - 预留：视觉问答（VQA_*）、语音转写（ASR_*）参数位
+- MinerU 文档解析：`MINERU_BASEURL`、`MINERU_APIKEY`
 
 前端（Vite）开发代理：`frontend/vite.config.ts`
 
