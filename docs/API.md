@@ -204,6 +204,28 @@ data: {"type":"error","message":"模型超时"}
 ### 5.5 重新解析（占位）
 - 方法：POST `/materials/{materialId}/parse`（参数：`mode=auto|vision|asr|text`）
 
+### 5.6 取消解析（占位）
+- 方法：POST `/materials/{materialId}/cancel`
+- 说明：当材料处于 `processing`（解析中）阶段时，请求中断后台解析任务。当前为占位实现，后续接入解析队列后将真正中断任务。
+- 成功响应：
+
+```json
+{ "data": { "cancelled": true }, "error": null }
+```
+
+- 异常：若材料非解析中或已完成/失败/已取消，返回 `409 CONFLICT`。
+
+### 5.7 状态机与取消/删除协作
+- 状态流转：`uploaded → queued → processing → ready | failed | cancelled`
+- 前端取消约定：
+  - 上传阶段（XHR 未完成）：前端 `abort()`，无需调用后端；不会产生 `materialId`。
+  - 上传后/解析未开始（`uploaded/queued`）：调用 `DELETE /materials/{id}` 直接清理。
+  - 解析中（`processing`）：先 `POST /materials/{id}/cancel` 请求中断，再 `DELETE /materials/{id}` 清理。
+  - 解析完成（`ready/failed`）：调用 `DELETE /materials/{id}` 清理。
+- 进度约定：
+  - 上传进度由前端监听 `XMLHttpRequest.upload.onprogress` 并展示；后端不返回上传百分比。
+  - 解析本期不提供细粒度进度，仅在完成时进入 `ready/failed`；如需更细粒度可扩展事件或轮询。
+
 —
 
 ## 6. 错误约定与返回风格

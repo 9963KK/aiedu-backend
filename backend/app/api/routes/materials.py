@@ -157,6 +157,26 @@ async def reparse(material_id: str, mode: Literal["auto", "vision", "asr", "text
     return {"data": {"materialId": material_id, "accepted": True, "mode": mode}, "error": None}
 
 
+@router.post("/{material_id}/cancel")
+async def cancel_parse(material_id: str) -> dict[str, Any]:
+    """Cancel parsing task for a material (placeholder).
+
+    Since parsing queue isn't wired yet, we simply create a cancellation flag
+    under the material tmp directory so future workers can short‑circuit.
+    """
+    tmp_dir = _ensure_tmp_dir() / material_id
+    if not tmp_dir.exists():
+        raise HTTPException(status_code=404, detail="Material not found")
+
+    try:
+        flag = tmp_dir / ".cancelled"
+        flag.write_text("1")
+    except OSError:
+        # best-effort; still report accepted
+        pass
+    return {"data": {"cancelled": True}, "error": None}
+
+
 @router.get("")
 async def list_materials(limit: int = 50, offset: int = 0) -> dict[str, Any]:
     base = _ensure_tmp_dir()
