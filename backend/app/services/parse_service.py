@@ -1,0 +1,75 @@
+"""Parse orchestrator for multimodal materials (MVP).
+
+Rules confirmed by user:
+- PDF/PPT/Word -> MinerU only (no local OCR)
+- Image -> route by vision; text-heavy/table may go to MinerU, otherwise keep as caption/summary
+- Audio -> ASR (already configured elsewhere) [placeholder hook]
+- Video -> not processed in this phase
+
+The orchestrator will be wired into materials routes later.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+from app.clients.mineru_client import MinerUClient
+from app.core.config import settings
+
+
+class ParseService:
+    def __init__(self) -> None:
+        self.tmp_base = Path(settings.storage_tmp_dir)
+        self.mineru = MinerUClient(
+            base_url=settings.text_base_url,  # placeholder; should be MINERU_BASEURL in config later
+            api_key=settings.text_api_key,
+            timeout=settings.request_timeout_seconds,
+        )
+
+    def _material_dir(self, material_id: str) -> Path:
+        return self.tmp_base / material_id
+
+    async def parse_document_via_mineru(self, material_id: str, filename: str) -> dict[str, Any]:
+        """Call MinerU for document parsing and persist chunks/markdown.
+
+        Returns a small status dict.
+        """
+        mdir = self._material_dir(material_id)
+        mdir.mkdir(parents=True, exist_ok=True)
+        src = next(mdir.glob("*")) if not (mdir / filename).exists() else (mdir / filename)
+        if not src or not src.exists():
+            raise FileNotFoundError("material file not found")
+
+        suffix = src.suffix.lower().lstrip(".")
+        doc_type = "pdf" if suffix in {"pdf"} else suffix
+        data = await self.mineru.parse_document(
+            file_bytes=src.read_bytes(), filename=src.name, doc_type=doc_type  # type: ignore[arg-type]
+        )
+
+        # Normalise to markdown + chunks (very light placeholder)
+        markdown_lines: list[str] = []
+        chunks: list[dict[str, Any]] = []
+        pages = data.get("pages") or []
+        for idx, page in enumerate(pages, start=1):
+            text = page.get("text") or ""
+            if text:
+                markdown_lines.append(f"\n\n## Page {idx}\n\n{text}")
+                chunks.append({"id": f"p{idx}", "type": "text", "text": text, "loc": {"page": idx}})
+        tables = data.get("tables") or []
+        for t_idx, tbl in enumerate(tables, start=1):
+            md = tbl.get("markdown") or ""
+            if md:
+                markdown_lines.append(f"\n\n### Table {t_idx}\n\n{md}")
+                chunks.append({"id": f"t{t_idx}", "type": "text", "text": md, "loc": {}})
+
+        (mdir / "parsed.md").write_text("\n".join(markdown_lines), encoding="utf-8")
+        with (mdir / "chunks.jsonl").open("w", encoding="utf-8") as f:
+            for ch in chunks:
+                f.write(json.dumps(ch, ensure_ascii=False) + "\n")
+
+        (mdir / "status.txt").write_text("ready", encoding="utf-8")
+        return {"ready": True, "chunks": len(chunks)}
+
+
