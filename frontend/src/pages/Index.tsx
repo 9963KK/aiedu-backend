@@ -1,8 +1,12 @@
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Mic, ArrowUp, Square, Bot, ArrowLeft } from "lucide-react";
+import { Mic, ArrowUp, Square, Bot, ArrowLeft } from "lucide-react";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { FileUploadButton } from "@/components/FileUpload/FileUploadButton";
+import { FileUploadProgress } from "@/components/FileUpload/FileUploadProgress";
+import { FileCard } from "@/components/FileUpload/FileCard";
+import { useFileUpload } from "@/hooks/useFileUpload";
 import { useEffect, useRef, useState } from "react";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -15,6 +19,15 @@ const Index = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // 文件上传 Hook
+  const {
+    files,
+    addFiles,
+    cancelUpload,
+    removeFile,
+    getUploadedMaterialIds,
+  } = useFileUpload();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,6 +50,7 @@ const Index = () => {
           sessionId: sessionId ?? undefined,
           context: {
             previousMessages: messages.slice(-10),
+            materialIds: getUploadedMaterialIds(), // 添加已上传的材料 ID
           },
         }),
         signal: controller.signal,
@@ -177,9 +191,7 @@ const Index = () => {
               className="relative"
             >
               <div className="flex items-center gap-3 px-6 py-4 rounded-full border bg-card shadow-lg hover:shadow-xl transition-shadow">
-                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                  <Plus className="w-5 h-5" />
-                </Button>
+                <FileUploadButton onFilesSelected={addFiles} className="h-8 w-8 shrink-0" />
                 <Input
                   type="text"
                   placeholder="询问任何问题,或添加资料开始学习..."
@@ -267,11 +279,31 @@ const Index = () => {
 
           {/* 聊天页输入框 */}
           <div className="fixed left-0 right-0 bottom-6 md:bottom-8 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
+            {/* 文件上传进度和文件列表 */}
+            <div className="mx-auto max-w-3xl px-4 pb-2 space-y-2">
+              {/* 上传中的文件 */}
+              {files.filter(f => f.status === 'uploading').map(file => (
+                <FileUploadProgress
+                  key={file.id}
+                  file={file}
+                  onCancel={() => cancelUpload(file.id)}
+                />
+              ))}
+
+              {/* 上传完成的文件 */}
+              {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                <FileCard
+                  key={file.id}
+                  file={file}
+                  onRemove={() => removeFile(file.id)}
+                />
+              ))}
+            </div>
+
+            {/* 输入框 */}
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-2 pt-1">
               <div className="flex items-center gap-3 px-5 py-3 md:px-6 md:py-3 rounded-full border-2 bg-card shadow-2xl hover:shadow-xl transition-shadow">
-                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8 shrink-0">
-                  <Plus className="w-5 h-5" />
-                </Button>
+                <FileUploadButton onFilesSelected={addFiles} className="h-7 w-7 md:h-8 md:w-8 shrink-0" />
                 <Input
                   type="text"
                   placeholder="继续提问..."

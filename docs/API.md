@@ -224,10 +224,76 @@ data: {"type":"error","message":"模型超时"}
 
 ## 7. 前端集成要点
 
+### 7.1 LLM 对话集成
+
 代码位置：`frontend/src/pages/Index.tsx`
 - 使用 `fetch('/api/llm/messages/stream', { method: 'POST', headers: { 'Content-Type': 'application/json' } })` 开启 SSE 流。
-- 前端解析规则：以 `\n\n` 分隔事件，行以 `data:` 开头；事件类型包含 `start`、`token`、`end`、`error`。
-- 会话处理：保存 `sessionId`，携带最近若干条 `previousMessages` 作为上下文。
+- 前端解析规则：以 `\n\n` 分隔事件,行以 `data:` 开头;事件类型包含 `start`、`token`、`end`、`error`。
+- 会话处理：保存 `sessionId`,携带最近若干条 `previousMessages` 作为上下文。
+- **材料引用**：在 `context` 中添加 `materialIds` 数组,传递已上传材料的 ID 列表,供 LLM 检索使用。
+
+示例请求:
+
+```json
+{
+  "message": "这个文档讲了什么?",
+  "sessionId": "session_456",
+  "context": {
+    "previousMessages": [...],
+    "materialIds": ["mat_123", "mat_456"]  // 已上传的材料 ID
+  }
+}
+```
+
+### 7.2 文件上传集成
+
+代码位置：`frontend/src/components/FileUpload/` 和 `frontend/src/hooks/useFileUpload.ts`
+
+**核心组件:**
+
+- `FileUploadButton` - 文件选择触发器
+- `FileUploadProgress` - 上传进度显示(圆形进度条)
+- `FileCard` - 文件卡片显示
+- `useFileUpload` Hook - 上传队列管理
+
+**使用示例:**
+
+```tsx
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { FileUploadButton } from '@/components/FileUpload/FileUploadButton';
+import { FileCard } from '@/components/FileUpload/FileCard';
+
+function ChatInterface() {
+  const { files, addFiles, removeFile, getUploadedMaterialIds } = useFileUpload();
+
+  return (
+    <>
+      <FileUploadButton onFilesSelected={addFiles} />
+      {files.map(file => (
+        <FileCard key={file.id} file={file} onRemove={() => removeFile(file.id)} />
+      ))}
+    </>
+  );
+}
+```
+
+**上传流程:**
+
+1. 用户选择文件 → 前端验证(类型、大小)
+2. 调用 `uploadMaterial()` 上传 → 显示进度条(XHR upload progress)
+3. 上传成功获得 `materialId` → 自动轮询处理状态(`uploaded` → `processing` → `ready`)
+4. 材料就绪后可在对话中引用
+
+**并发控制:**
+
+- 最多同时上传 3 个文件
+- 队列自动管理,超出部分排队等待
+
+**文件类型与限制:**
+
+- 支持类型: txt,pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,mp3,m4a,wav,mp4
+- 普通文件: 最大 200MB
+- 视频文件: 最大 500MB
 
 Vite 代理（开发）：请求以 `/api` 开头自动转发到后端，无需额外 CORS 配置。
 
@@ -240,7 +306,7 @@ Vite 代理（开发）：请求以 `/api` 开头自动转发到后端，无需�
 
 —
 
-文档版本：v1.0.0（统一版）
-最后更新：2025-10-24
+文档版本：v1.1.0（新增多模态文件上传功能）
+最后更新：2025-10-25
 维护者：AIEDU 开发团队
 
