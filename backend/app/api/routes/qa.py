@@ -80,10 +80,21 @@ async def qa_instant(request: Request, llm_service: LLMService = Depends(get_llm
         messages = [{"role": "user", "content": message}]
 
         try:
+            got_any_token = False
             async for chunk in llm_service.stream_completion(messages=messages):
                 if chunk.type == "content" and chunk.content:
+                    got_any_token = True
                     yield _format_sse({"type": "token", "content": chunk.content})
                 elif chunk.type == "end":
+                    # 若未收到任何 token，降级为非流式补发一次完整回答
+                    if not got_any_token:
+                        try:
+                            result = await llm_service.generate_completion(messages=messages)
+                            if result.content:
+                                yield _format_sse({"type": "token", "content": result.content})
+                        except ValueError as exc:
+                            yield _format_sse({"type": "error", "message": str(exc)})
+                            break
                     event_payload: dict[str, Any] = {"type": "end", "messageId": message_id}
                     if chunk.model:
                         event_payload["model"] = chunk.model
