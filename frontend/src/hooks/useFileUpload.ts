@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { UploadFile } from '@/types/file';
 import { generateFileId, getFileType } from '@/lib/file-utils';
-import { uploadMaterial, pollMaterialStatus, deleteMaterial } from '@/api/materials';
+import { uploadMaterial, pollMaterialStatus, deleteMaterial, cancelMaterialParsing } from '@/api/materials';
 
 /** 最大并发上传数 */
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -221,14 +221,35 @@ export function useFileUpload() {
 
   /**
    * 删除文件
+   * 实现三阶段取消协作机制(符合 API 文档 5.7 节规范):
+   * 1. 上传阶段(XHR 未完成): 前端 abort(),无需调用后端
+   * 2. 上传后/解析未开始(uploaded/queued): DELETE /materials/{id} 直接清理
+   * 3. 解析中(processing): 先 POST /materials/{id}/cancel 中断,再 DELETE 清理
+   * 4. 解析完成(ready/failed): DELETE /materials/{id} 清理
    */
   const removeFile = useCallback(async (fileId: string) => {
     const file = files.find((f) => f.id === fileId);
 
-    // 如果有 materialId,调用后端删除接口
+    // 如果有 materialId,根据状态调用不同的后端接口
     if (file?.materialId) {
       try {
+        // 阶段 3: 解析中 - 先取消再删除
+        if (file.status === 'processing' ||
+            (file.status === 'success' && file.materialStatus === 'processing')) {
+          try {
+            await cancelMaterialParsing(file.materialId);
+            console.log(`已取消材料解析: ${file.materialId}`);
+          } catch (error: any) {
+            // 如果取消失败(如已完成/失败),继续执行删除
+            if (error?.status !== 409) {
+              console.warn('取消解析失败:', error);
+            }
+          }
+        }
+
+        // 阶段 2/4: 上传后 或 解析完成 - 直接删除
         await deleteMaterial(file.materialId);
+        console.log(`已删除材料: ${file.materialId}`);
       } catch (error) {
         console.error('删除材料失败:', error);
         // 即使删除失败也从前端移除

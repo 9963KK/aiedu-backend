@@ -140,6 +140,29 @@ export async function deleteMaterial(materialId: string): Promise<void> {
 }
 
 /**
+ * 取消材料解析
+ * @param materialId - 材料 ID
+ * @description 仅在材料处于 processing 状态时有效
+ * @throws ApiError - 如果材料非解析中或已完成/失败/已取消,返回 409 CONFLICT
+ */
+export async function cancelMaterialParsing(materialId: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/materials/${materialId}/cancel`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    let errorMessage = `HTTP ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
+    } catch {
+      // 忽略解析错误
+    }
+    throw new ApiError(errorMessage, response.status);
+  }
+}
+
+/**
  * 获取材料内容片段
  * @param materialId - 材料 ID
  * @param options - 查询参数
