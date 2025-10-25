@@ -1,4 +1,4 @@
-import { Check, Loader2, AlertCircle } from 'lucide-react';
+import { Check, Loader2, AlertCircle, X } from 'lucide-react';
 import { FileIconComponent } from './FileIcon';
 import type { UploadFile } from '@/types/file';
 
@@ -13,6 +13,7 @@ interface FileChipProps {
  * 文件缩略图组件 (Apple 风格)
  * 左侧: 文件图标 + 文件名
  * 右侧: 圆形进度条/完成图标
+ * 悬停时: 右上角显示删除按钮
  */
 export function FileChip({ file, onRemove }: FileChipProps) {
   const { name, type, status, materialStatus, progress = 0 } = file;
@@ -30,15 +31,7 @@ export function FileChip({ file, onRemove }: FileChipProps) {
 
   return (
     <div
-      className="inline-flex items-center justify-between gap-2 px-3 py-1.5 bg-muted/50 rounded-full border border-border/50 hover:border-border transition-all animate-in slide-in-from-bottom-2 duration-200"
-      onClick={(e) => {
-        // 点击整个区域时删除文件(除了正在上传的)
-        if (!isUploading) {
-          e.stopPropagation();
-          onRemove();
-        }
-      }}
-      style={{ cursor: isUploading ? 'default' : 'pointer' }}
+      className="relative inline-flex items-center justify-between gap-2 px-3 py-1.5 bg-muted/50 rounded-full border border-border/50 hover:border-border transition-all animate-in slide-in-from-bottom-2 duration-200 group"
     >
       {/* 左侧: 文件图标 + 文件名 */}
       <div className="flex items-center gap-2 min-w-0">
@@ -105,6 +98,20 @@ export function FileChip({ file, onRemove }: FileChipProps) {
           </div>
         ) : null}
       </div>
+
+      {/* 悬停时显示的删除按钮 - 右上角 */}
+      {!isUploading && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+          title="删除文件"
+        >
+          <X className="w-3 h-3 text-white" strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 }
