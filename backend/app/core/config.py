@@ -58,6 +58,15 @@ class Settings(BaseSettings):
     asr_api_key: str | None = Field(default=None, alias="ASR_APIKEY")
     asr_language: str | None = Field(default="auto", alias="ASR_LANGUAGE")
 
+    # Embeddings (vector) model configuration - placeholder for retrieval
+    emb_provider: str | None = Field(default=None, alias="EMB_PROVIDER")
+    emb_base_url: str | None = Field(default=None, alias="EMB_BASEURL")
+    emb_model: str | None = Field(default=None, alias="EMB_MODEL")
+    emb_api_key: str | None = Field(default=None, alias="EMB_APIKEY")
+    emb_dim: int | None = Field(default=None, alias="EMB_DIM")
+    emb_pooling: str | None = Field(default=None, alias="EMB_POOLING")
+    emb_batch: int | None = Field(default=64, alias="EMB_BATCH")
+
 
 @lru_cache
 def get_settings() -> Settings:
