@@ -131,10 +131,7 @@ export function useFileUpload() {
         }, 3000);
       }
 
-      toast({
-        title: '上传成功',
-        description: `${uploadFile.name} 已上传`,
-      });
+      // 移除 toast 提示,用户可通过文件卡片的视觉状态了解上传结果
     } catch (error: any) {
       // 上传失败
       const errorMessage =
