@@ -62,11 +62,10 @@ class LLMService:
 
 
 def _build_client() -> LLMClient:
-    """Build an OpenAI-compatible client using TXT_* settings.
+    """Build an OpenAI-compatible client using VLM_* settings.
 
-    Many providers (including siliconflow, etc.) expose an OpenAI-compatible
-    Chat Completions API. We rely on TXT_BASEURL/TXT_APIKEY/TXT_MODEL to
-    connect, without restricting the provider name.
+    Many providers（含 OpenAI 兼容）通过 Chat Completions 暴露多模态/文本能力，
+    这里统一读取 VLM_BASEURL/VLM_APIKEY/VLM_MODEL。
     """
     return OpenAIClient(
         api_key=settings.text_api_key,
