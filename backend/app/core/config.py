@@ -9,7 +9,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Runtime configuration sourced via environment variables and .env."""
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",  # ignore legacy TXT_* variables gracefully
+    )
 
     app_name: str = Field(default="AIEDU Backend", alias="APP_NAME")
     debug: bool = Field(default=False, alias="APP_DEBUG")
