@@ -154,16 +154,7 @@ export async function askInstant(
   });
 
   if (!response.ok || !response.body) {
-    let errorMessage = `HTTP ${response.status}`;
-    try {
-      const ct = response.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        const errorData = await response.json();
-        errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
-      }
-    } catch {
-      // 忽略解析错误
-    }
+    const errorMessage = await parseErrorResponse(response);
     throw new ApiError(errorMessage, response.status);
   }
 
@@ -199,13 +190,7 @@ export async function askInstantWithMaterials(
   });
 
   if (!response.ok || !response.body) {
-    let errorMessage = `HTTP ${response.status}`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
-    } catch {
-      // 忽略解析错误
-    }
+    const errorMessage = await parseErrorResponse(response);
     throw new ApiError(errorMessage, response.status);
   }
 
@@ -243,20 +228,12 @@ export async function askKnowledge(
   });
 
   if (!response.ok || !response.body) {
-    let errorMessage = `HTTP ${response.status}`;
-
     // 特殊处理 501
     if (response.status === 501) {
-      errorMessage = '知识库检索功能建设中,请稍后再试';
-    } else {
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
-      } catch {
-        // 忽略解析错误
-      }
+      throw new ApiError('知识库检索功能建设中,请稍后再试', response.status);
     }
 
+    const errorMessage = await parseErrorResponse(response);
     throw new ApiError(errorMessage, response.status);
   }
 
@@ -274,13 +251,7 @@ export async function triggerMaterialIndex(materialId: string): Promise<void> {
   });
 
   if (!response.ok) {
-    let errorMessage = `HTTP ${response.status}`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
-    } catch {
-      // 忽略解析错误
-    }
+    const errorMessage = await parseErrorResponse(response);
     throw new ApiError(errorMessage, response.status);
   }
 }
