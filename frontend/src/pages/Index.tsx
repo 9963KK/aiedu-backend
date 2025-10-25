@@ -212,9 +212,9 @@ const Index = () => {
               </div>
             </form>
 
-            {/* 文件上传区域 - 显示在输入框下方 */}
+            {/* 文件上传区域 - 显示在输入框下方,左对齐 */}
             {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 max-w-2xl mx-auto animate-in slide-in-from-bottom-2 duration-300">
+              <div className="flex flex-wrap gap-2 max-w-2xl animate-in slide-in-from-bottom-2 duration-300">
                 {/* 上传中的文件 - 显示进度 */}
                 {files.filter(f => f.status === 'uploading').map(file => (
                   <div key={file.id} className="w-full">
