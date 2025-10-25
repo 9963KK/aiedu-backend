@@ -5,7 +5,7 @@ import { Mic, ArrowUp, Square, Bot, ArrowLeft } from "lucide-react";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { FileUploadButton } from "@/components/FileUpload/FileUploadButton";
 import { FileUploadProgress } from "@/components/FileUpload/FileUploadProgress";
-import { FileCard } from "@/components/FileUpload/FileCard";
+import { FileChip } from "@/components/FileUpload/FileChip";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useEffect, useRef, useState } from "react";
 
@@ -185,7 +185,31 @@ const Index = () => {
           >
             今天想学点什么?
           </h1>
-          <div className="relative">
+          <div className="relative space-y-4">
+            {/* 文件上传区域 - 紧凑的缩略图模式 */}
+            {files.length > 0 && (
+              <div className="flex flex-wrap gap-2 justify-center max-w-2xl mx-auto">
+                {/* 上传中的文件 - 显示进度 */}
+                {files.filter(f => f.status === 'uploading').map(file => (
+                  <div key={file.id} className="w-full max-w-md">
+                    <FileUploadProgress
+                      file={file}
+                      onCancel={() => cancelUpload(file.id)}
+                    />
+                  </div>
+                ))}
+
+                {/* 上传完成的文件 - 紧凑缩略图 */}
+                {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                  <FileChip
+                    key={file.id}
+                    file={file}
+                    onRemove={() => removeFile(file.id)}
+                  />
+                ))}
+              </div>
+            )}
+
             <form
               onSubmit={handleSubmit}
               className="relative"
@@ -279,26 +303,31 @@ const Index = () => {
 
           {/* 聊天页输入框 */}
           <div className="fixed left-0 right-0 bottom-6 md:bottom-8 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
-            {/* 文件上传进度和文件列表 */}
-            <div className="mx-auto max-w-3xl px-4 pb-2 space-y-2">
-              {/* 上传中的文件 */}
-              {files.filter(f => f.status === 'uploading').map(file => (
-                <FileUploadProgress
-                  key={file.id}
-                  file={file}
-                  onCancel={() => cancelUpload(file.id)}
-                />
-              ))}
+            {/* 文件上传区域 - 紧凑模式 */}
+            {files.length > 0 && (
+              <div className="mx-auto max-w-3xl px-4 pb-2">
+                <div className="flex flex-wrap gap-2">
+                  {/* 上传中的文件 - 显示进度 */}
+                  {files.filter(f => f.status === 'uploading').map(file => (
+                    <div key={file.id} className="w-full">
+                      <FileUploadProgress
+                        file={file}
+                        onCancel={() => cancelUpload(file.id)}
+                      />
+                    </div>
+                  ))}
 
-              {/* 上传完成的文件 */}
-              {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
-                <FileCard
-                  key={file.id}
-                  file={file}
-                  onRemove={() => removeFile(file.id)}
-                />
-              ))}
-            </div>
+                  {/* 上传完成的文件 - 紧凑缩略图 */}
+                  {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                    <FileChip
+                      key={file.id}
+                      file={file}
+                      onRemove={() => removeFile(file.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 输入框 */}
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-2 pt-1">

@@ -98,7 +98,7 @@ export function useFileUpload() {
           f.id === uploadFile.id
             ? {
                 ...f,
-                status: 'processing',
+                status: status === 'ready' || status === 'uploaded' ? 'success' : 'processing',
                 progress: 100,
                 materialId,
                 materialStatus: status,
@@ -107,9 +107,14 @@ export function useFileUpload() {
         )
       );
 
-      // 开始轮询处理状态
-      if (status !== 'ready' && status !== 'failed') {
+      // 开始轮询处理状态 (只有在 processing 或 queued 状态时才轮询)
+      if (status === 'processing' || status === 'queued') {
         pollStatus(uploadFile.id, materialId);
+      } else if (status === 'uploaded') {
+        // 如果是 uploaded 状态,等待 3 秒后再检查一次
+        setTimeout(() => {
+          pollStatus(uploadFile.id, materialId, 10); // 最多轮询 10 次
+        }, 3000);
       }
 
       toast({
@@ -143,7 +148,7 @@ export function useFileUpload() {
   /**
    * 轮询材料处理状态
    */
-  const pollStatus = async (fileId: string, materialId: string) => {
+  const pollStatus = async (fileId: string, materialId: string, maxRetries: number = 60) => {
     try {
       await pollMaterialStatus(
         materialId,
@@ -155,7 +160,7 @@ export function useFileUpload() {
                     ...f,
                     materialStatus: response.data.status,
                     status:
-                      response.data.status === 'ready'
+                      response.data.status === 'ready' || response.data.status === 'uploaded'
                         ? 'success'
                         : response.data.status === 'failed'
                           ? 'error'
@@ -165,7 +170,7 @@ export function useFileUpload() {
             )
           );
         },
-        60,
+        maxRetries,
         2000
       );
     } catch (error: any) {
