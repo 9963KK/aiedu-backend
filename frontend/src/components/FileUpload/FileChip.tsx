@@ -36,11 +36,11 @@ export function FileChip({ file, onRemove }: FileChipProps) {
   };
 
   // 计算圆角矩形周长进度 (用于 SVG 描边动画)
-  // 动态计算宽度,根据文件名长度
+  // 动态计算宽度,根据文件名长度,使用更紧凑的公式
   const height = 36;
   const borderRadius = 18;
-  // 基础宽度 + 文件名长度估算 (每个字符约 8px)
-  const estimatedWidth = Math.max(180, Math.min(320, 120 + name.length * 8));
+  // 基础宽度 + 文件名长度估算 (每个字符约 6px,更紧凑)
+  const estimatedWidth = Math.max(160, Math.min(280, 100 + name.length * 6));
 
   // 圆角矩形周长近似计算: 2*(w+h) - 4*r + 2*π*r
   const perimeter = 2 * (estimatedWidth + height) - 4 * borderRadius + 2 * Math.PI * borderRadius;
