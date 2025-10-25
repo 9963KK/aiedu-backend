@@ -186,31 +186,29 @@ const Index = () => {
             今天想学点什么?
           </h1>
           <div className="relative space-y-4">
-            {/* 文件上传区域 - 左对齐,向右延伸 */}
-            <div className="min-h-[44px]"> {/* 预留固定高度,防止跳动 */}
-              {files.length > 0 && (
-                <div className="flex flex-wrap gap-2 max-w-2xl mx-auto">
-                  {/* 上传中的文件 - 显示进度 */}
-                  {files.filter(f => f.status === 'uploading').map(file => (
-                    <div key={file.id} className="w-full">
-                      <FileUploadProgress
-                        file={file}
-                        onCancel={() => cancelUpload(file.id)}
-                      />
-                    </div>
-                  ))}
-
-                  {/* 上传完成的文件 - 紧凑缩略图 */}
-                  {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
-                    <FileChip
-                      key={file.id}
+            {/* 文件上传区域 - 只在有文件时显示,避免空白占位 */}
+            {files.length > 0 && (
+              <div className="flex flex-wrap gap-2 max-w-2xl mx-auto mb-4 animate-in slide-in-from-top-2 duration-300">
+                {/* 上传中的文件 - 显示进度 */}
+                {files.filter(f => f.status === 'uploading').map(file => (
+                  <div key={file.id} className="w-full">
+                    <FileUploadProgress
                       file={file}
-                      onRemove={() => removeFile(file.id)}
+                      onCancel={() => cancelUpload(file.id)}
                     />
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+
+                {/* 上传完成的文件 - 紧凑缩略图 */}
+                {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                  <FileChip
+                    key={file.id}
+                    file={file}
+                    onRemove={() => removeFile(file.id)}
+                  />
+                ))}
+              </div>
+            )}
 
             <form
               onSubmit={handleSubmit}
