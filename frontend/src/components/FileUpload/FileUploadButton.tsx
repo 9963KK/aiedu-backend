@@ -1,29 +1,3 @@
-import { Paperclip } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-type Props = {
-  onFilesSelected: (files: FileList) => void;
-  className?: string;
-};
-
-export function FileUploadButton({ onFilesSelected, className }: Props) {
-  return (
-    <label className={cn("inline-flex items-center justify-center rounded-full border bg-card hover:bg-muted cursor-pointer", className)}>
-      <input
-        type="file"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          if (e.target.files) onFilesSelected(e.target.files);
-          // reset value to allow select same file twice
-          e.currentTarget.value = "";
-        }}
-      />
-      <Paperclip className="w-5 h-5" />
-    </label>
-  );
-}
-
 import { useRef } from 'react';
 import { Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
