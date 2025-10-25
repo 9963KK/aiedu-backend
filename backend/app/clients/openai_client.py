@@ -125,13 +125,21 @@ class OpenAIClient(LLMClient):
 
                     last_model = chunk.get("model", last_model)
 
-                    delta = (
-                        chunk.get("choices", [{}])[0]
-                        .get("delta", {})
-                        .get("content")
-                    )
-                    if delta:
-                        yield LLMStreamChunk(type="content", content=delta, model=last_model)
+                    # choices 可能为空数组（部分网关会发送空心跳），要做健壮性判断
+                    choices = chunk.get("choices")
+                    if isinstance(choices, list) and choices:
+                        choice0 = choices[0] or {}
+                        delta_obj = choice0.get("delta") or {}
+                        content_piece = delta_obj.get("content")
+                        if content_piece:
+                            yield LLMStreamChunk(type="content", content=content_piece, model=last_model)
+
+                        # 某些实现不会返回 usage，而是只给 finish_reason
+                        finish = choice0.get("finish_reason")
+                        if finish in {"stop", "length", "content_filter"}:
+                            end_emitted = True
+                            yield LLMStreamChunk(type="end", model=last_model)
+                            break
 
                     usage = chunk.get("usage")
                     if usage:

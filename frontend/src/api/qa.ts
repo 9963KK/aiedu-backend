@@ -147,8 +147,11 @@ export async function askInstant(
   if (!response.ok || !response.body) {
     let errorMessage = `HTTP ${response.status}`;
     try {
-      const errorData = await response.json();
-      errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const errorData = await response.json();
+        errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
+      }
     } catch {
       // 忽略解析错误
     }
