@@ -59,7 +59,8 @@ async def qa_instant(request: Request, llm_service: LLMService = Depends(get_llm
         try:
             data = await request.json()
         except Exception as exc:  # noqa: BLE001
-            raise HTTPException(status_code=400, detail="Invalid request body") from exc
+            # 如果前端错误地以 JSON 头发送了空体,返回更友好的信息
+            raise HTTPException(status_code=400, detail="Invalid JSON body: empty or malformed") from exc
         payload = InstantJson.model_validate(data)
         message = payload.message
         material_ids = payload.material_ids

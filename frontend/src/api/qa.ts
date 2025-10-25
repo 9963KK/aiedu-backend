@@ -21,6 +21,28 @@ export interface SSECallbacks {
 }
 
 /**
+ * 解析错误响应(支持 JSON 和纯文本)
+ */
+async function parseErrorResponse(response: Response): Promise<string> {
+  const defaultMessage = `HTTP ${response.status}`;
+
+  try {
+    const contentType = response.headers.get('content-type');
+
+    if (contentType && contentType.includes('application/json')) {
+      const errorData = await response.json();
+      return errorData?.detail || errorData?.error?.message || defaultMessage;
+    } else {
+      // 如果不是 JSON,读取文本内容
+      const text = await response.text();
+      return text || defaultMessage;
+    }
+  } catch {
+    return defaultMessage;
+  }
+}
+
+/**
  * 解析 SSE 流
  * @param stream - ReadableStream
  * @param callbacks - 事件回调

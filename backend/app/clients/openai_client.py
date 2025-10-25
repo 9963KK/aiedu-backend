@@ -52,7 +52,15 @@ class OpenAIClient(LLMClient):
             msg = f"OpenAI request failed: {detail}"
             raise ValueError(msg) from exc
 
-        data = response.json()
+        try:
+            data = response.json()
+        except json.JSONDecodeError as exc:  # provider returned non‑JSON or empty body
+            preview = response.text[:200] if response.text else ""
+            msg = (
+                "Provider returned a non-JSON response for non-streaming request. "
+                "Please verify VLM_BASEURL/VLM_MODEL. Response preview: " + preview
+            )
+            raise ValueError(msg) from exc
         try:
             content = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError) as exc:
