@@ -37,17 +37,16 @@ export type FileType =
 export type MaterialStatus = 'uploaded' | 'queued' | 'processing' | 'ready' | 'failed';
 
 /**
- * 上传文件状态
+ * 上传文件状态(简化版,即时问答无需等待解析)
  * - pending: 等待上传
  * - uploading: 正在上传
- * - processing: 上传完成,正在处理
- * - success: 处理完成
- * - error: 上传或处理失败
+ * - success: 上传完成(可用于问答)
+ * - error: 上传失败
  */
-export type UploadStatus = 'pending' | 'uploading' | 'processing' | 'success' | 'error';
+export type UploadStatus = 'pending' | 'uploading' | 'success' | 'error';
 
 /**
- * 上传文件模型
+ * 上传文件模型(即时问答简化版)
  */
 export interface UploadFile {
   /** 前端临时 ID */
@@ -66,10 +65,8 @@ export interface UploadFile {
   progress: number;
   /** 错误信息 */
   error?: string;
-  /** 上传成功后的材料 ID */
+  /** 上传成功后的材料 ID(保留,用于知识库问答场景) */
   materialId?: string;
-  /** 材料处理状态 */
-  materialStatus?: MaterialStatus;
   /** 用于取消上传 */
   abortController?: AbortController;
 }

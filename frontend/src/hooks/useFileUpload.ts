@@ -1,15 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { UploadFile } from '@/types/file';
 import { generateFileId, getFileType } from '@/lib/file-utils';
-import { uploadMaterial, getMaterialStatus, deleteMaterial, cancelMaterialParsing } from '@/api/materials';
+import { uploadMaterial, deleteMaterial } from '@/api/materials';
 
 /** 最大并发上传数 */
 const MAX_CONCURRENT_UPLOADS = 3;
 
 /**
- * 文件上传 Hook
- * 管理文件上传队列、进度追踪、状态轮询
+ * 文件上传 Hook (即时问答简化版)
+ * 管理文件上传队列、进度追踪
+ *
+ * 注意:即时问答模式下,上传完成即可用,无需等待解析
  */
 export function useFileUpload() {
   const [files, setFiles] = useState<UploadFile[]>([]);
@@ -18,9 +20,6 @@ export function useFileUpload() {
   // 上传队列管理
   const uploadQueueRef = useRef<UploadFile[]>([]);
   const activeUploadsRef = useRef<number>(0);
-
-  // 轮询控制器映射 (fileId -> AbortController)
-  const pollingControllersRef = useRef<Map<string, AbortController>>(new Map());
 
   /**
    * 添加文件到上传列表
@@ -67,7 +66,7 @@ export function useFileUpload() {
   }, []);
 
   /**
-   * 上传单个文件
+   * 上传单个文件(简化版,上传完成即可用)
    */
   const uploadFile = async (uploadFile: UploadFile) => {
     const controller = new AbortController();
@@ -93,48 +92,21 @@ export function useFileUpload() {
         controller.signal
       );
 
-      const { materialId, status } = response.data;
+      const { materialId } = response.data;
 
-      // 上传成功,更新状态为 uploading (显示绿色勾)
+      // 上传成功,更新状态为 success(可用于问答)
       setFiles((prev) =>
         prev.map((f) =>
           f.id === uploadFile.id
             ? {
                 ...f,
-                status: 'uploading', // 保持 uploading 状态显示绿色勾
+                status: 'success',
                 progress: 100,
                 materialId,
-                materialStatus: status,
               }
             : f
         )
       );
-
-      // 延迟 1 秒后转换为缩略图
-      setTimeout(() => {
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id
-              ? {
-                  ...f,
-                  status: status === 'ready' || status === 'uploaded' ? 'success' : 'processing',
-                }
-              : f
-          )
-        );
-      }, 1000);
-
-      // 开始轮询处理状态 (只有在 processing 或 queued 状态时才轮询)
-      if (status === 'processing' || status === 'queued') {
-        pollStatus(uploadFile.id, materialId);
-      } else if (status === 'uploaded') {
-        // 如果是 uploaded 状态,等待 3 秒后再检查一次
-        setTimeout(() => {
-          pollStatus(uploadFile.id, materialId, 10); // 最多轮询 10 次
-        }, 3000);
-      }
-
-      // 移除 toast 提示,用户可通过文件卡片的视觉状态了解上传结果
     } catch (error: any) {
       // 上传失败
       const errorMessage =
@@ -160,88 +132,6 @@ export function useFileUpload() {
   };
 
   /**
-   * 轮询材料处理状态(可中断)
-   */
-  const pollStatus = async (fileId: string, materialId: string, maxRetries: number = 60) => {
-    // 创建轮询控制器
-    const controller = new AbortController();
-    pollingControllersRef.current.set(fileId, controller);
-
-    try {
-      let retries = 0;
-
-      while (retries < maxRetries && !controller.signal.aborted) {
-        try {
-          const response = await getMaterialStatus(materialId);
-
-          // 检查是否已被中断
-          if (controller.signal.aborted) {
-            break;
-          }
-
-          // 更新状态
-          setFiles((prev) =>
-            prev.map((f) =>
-              f.id === fileId
-                ? {
-                    ...f,
-                    materialStatus: response.data.status,
-                    status:
-                      response.data.status === 'ready' || response.data.status === 'uploaded'
-                        ? 'success'
-                        : response.data.status === 'failed'
-                          ? 'error'
-                          : 'processing',
-                  }
-                : f
-            )
-          );
-
-          // 如果处理完成或失败,停止轮询
-          if (response.data.status === 'ready' || response.data.status === 'failed') {
-            break;
-          }
-
-          // 等待后继续轮询
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          retries++;
-        } catch (error: any) {
-          // 404 表示材料已被删除,停止轮询
-          if (error?.status === 404) {
-            console.log(`材料已删除,停止轮询: ${materialId}`);
-            break;
-          }
-
-          // 其他错误,重试
-          retries++;
-          if (retries >= maxRetries) {
-            throw error;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-        }
-      }
-    } catch (error: any) {
-      // 轮询超时或失败(忽略 aborted)
-      if (!controller.signal.aborted) {
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileId
-              ? {
-                  ...f,
-                  status: 'error',
-                  error: error?.message || '处理超时',
-                }
-              : f
-          )
-        );
-      }
-    } finally {
-      // 清理控制器
-      pollingControllersRef.current.delete(fileId);
-    }
-  };
-
-  /**
    * 取消上传
    */
   const cancelUpload = useCallback((fileId: string) => {
@@ -262,41 +152,13 @@ export function useFileUpload() {
 
   /**
    * 删除文件
-   * 实现三阶段取消协作机制(符合 API 文档 5.7 节规范):
-   * 1. 上传阶段(XHR 未完成): 前端 abort(),无需调用后端
-   * 2. 上传后/解析未开始(uploaded/queued): DELETE /materials/{id} 直接清理
-   * 3. 解析中(processing): 先 POST /materials/{id}/cancel 中断,再 DELETE 清理
-   * 4. 解析完成(ready/failed): DELETE /materials/{id} 清理
    */
   const removeFile = useCallback(async (fileId: string) => {
     const file = files.find((f) => f.id === fileId);
 
-    // 停止轮询(如果正在轮询)
-    const pollingController = pollingControllersRef.current.get(fileId);
-    if (pollingController) {
-      pollingController.abort();
-      pollingControllersRef.current.delete(fileId);
-      console.log(`已停止轮询: ${fileId}`);
-    }
-
-    // 如果有 materialId,根据状态调用不同的后端接口
+    // 如果有 materialId,调用后端删除接口
     if (file?.materialId) {
       try {
-        // 阶段 3: 解析中 - 先取消再删除
-        if (file.status === 'processing' ||
-            (file.status === 'success' && file.materialStatus === 'processing')) {
-          try {
-            await cancelMaterialParsing(file.materialId);
-            console.log(`已取消材料解析: ${file.materialId}`);
-          } catch (error: any) {
-            // 如果取消失败(如已完成/失败),继续执行删除
-            if (error?.status !== 409) {
-              console.warn('取消解析失败:', error);
-            }
-          }
-        }
-
-        // 阶段 2/4: 上传后 或 解析完成 - 直接删除
         await deleteMaterial(file.materialId);
         console.log(`已删除材料: ${file.materialId}`);
       } catch (error) {

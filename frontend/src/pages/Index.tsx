@@ -6,6 +6,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { FileUploadButton } from "@/components/FileUpload/FileUploadButton";
 import { FileChip } from "@/components/FileUpload/FileChip";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { askInstant, parseSSEStream } from "@/api/qa";
 import { useEffect, useRef, useState } from "react";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -25,14 +26,17 @@ const Index = () => {
     addFiles,
     cancelUpload,
     removeFile,
-    getUploadedMaterialIds,
+    clearFiles,
   } = useFileUpload();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const callChatStream = async (text: string) => {
+  /**
+   * 即时问答(新 QA 接口 - multipart 形态)
+   */
+  const handleInstantQA = async (text: string) => {
     setLoading(true);
     const controller = new AbortController();
     abortRef.current = controller;
@@ -41,90 +45,64 @@ const Index = () => {
     setMessages((prev) => [...prev, { role: "user", content: text }, { role: "assistant", content: "" }]);
 
     try {
-      const res = await fetch(`/api/llm/messages/stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: text,
-          sessionId: sessionId ?? undefined,
-          context: {
-            previousMessages: messages.slice(-10),
-            materialIds: getUploadedMaterialIds(), // 添加已上传的材料 ID
-          },
-        }),
-        signal: controller.signal,
-      });
-      if (!res.ok || !res.body) {
-        let msg = `HTTP ${res.status}`;
-        try {
-          const body = await res.json();
-          msg = body?.detail || body?.error?.message || msg;
-        } catch {}
-        throw new Error(msg);
-      }
+      // 调用新 QA API (multipart 形态,直接附带文件)
+      const stream = await askInstant(
+        text,
+        files.map(f => f.file), // 直接传递 File 对象数组
+        undefined, // hints (可选)
+        controller.signal
+      );
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
       let assistant = "";
+      let messageId = "";
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const events = buffer.split("\n\n");
-        buffer = events.pop() ?? "";
-
-        for (const evt of events) {
-          const line = evt.trim();
-          if (!line.startsWith("data:")) continue;
-          const jsonStr = line.slice("data:".length).trim();
-          if (!jsonStr) continue;
-          let payload: any;
-          try {
-            payload = JSON.parse(jsonStr);
-          } catch {
-            continue;
+      // 解析 SSE 流
+      await parseSSEStream(stream, {
+        onStart: (data) => {
+          messageId = data.messageId;
+          if (!sessionId) {
+            setSessionId(messageId); // 使用 messageId 作为 sessionId
           }
-          if (payload.type === "start" && payload.sessionId && !sessionId) {
-            setSessionId(payload.sessionId as string);
-          } else if (payload.type === "token" && typeof payload.content === "string") {
-            let token = payload.content as string;
-            if (assistant.length === 0) {
-              token = token.replace(/^[\s\r\n]+/, "");
-            }
-            if (token.length === 0) {
-              continue;
-            }
-            assistant += token;
-            // 更新最后一条助手消息内容
-            setMessages((prev) => {
-              const next = [...prev];
-              const lastIdx = next.length - 1;
-              if (lastIdx >= 0 && next[lastIdx].role === "assistant") {
-                next[lastIdx] = { role: "assistant", content: assistant };
-              }
-              return next;
-            });
-          } else if (payload.type === "error") {
-            throw new Error(payload.message || "流式出错");
-          } else if (payload.type === "end") {
-            // 结束事件,不做额外处理
+        },
+        onToken: (token) => {
+          // 清理首个 token 的前导空白
+          if (assistant.length === 0) {
+            token = token.replace(/^[\s\r\n]+/, "");
           }
+          if (token.length === 0) return;
+
+          assistant += token;
+
+          // 更新最后一条助手消息内容
+          setMessages((prev) => {
+            const next = [...prev];
+            const lastIdx = next.length - 1;
+            if (lastIdx >= 0 && next[lastIdx].role === "assistant") {
+              next[lastIdx] = { role: "assistant", content: assistant };
+            }
+            return next;
+          });
+        },
+        onEnd: () => {
+          // 问答完成,清空文件列表
+          clearFiles();
+        },
+        onError: (error) => {
+          throw new Error(error.message);
         }
-      }
+      });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "请求失败,请稍后重试。";
+      const message = err instanceof Error ? err.message : "生成失败,请重试";
+
       // 将占位助手消息替换为错误信息
       setMessages((prev) => {
         const next = [...prev];
         const lastIdx = next.length - 1;
         if (lastIdx >= 0 && next[lastIdx].role === "assistant" && next[lastIdx].content === "") {
-          next[lastIdx] = { role: "assistant", content: message };
+          next[lastIdx] = { role: "assistant", content: `❌ ${message}` };
           return next;
         }
-        return [...next, { role: "assistant", content: message }];
+        return [...next, { role: "assistant", content: `❌ ${message}` }];
       });
     } finally {
       setLoading(false);
@@ -143,16 +121,28 @@ const Index = () => {
       // 延迟执行,等待动画完成
       setTimeout(() => {
         setQuery("");
-        void callChatStream(text);
+        void handleInstantQA(text);
       }, 300);
     } else {
       setQuery("");
-      void callChatStream(text);
+      void handleInstantQA(text);
     }
   };
 
   const handleStop = () => {
     abortRef.current?.abort();
+
+    // 在当前助手消息后追加"(已停止)"
+    setMessages((prev) => {
+      const next = [...prev];
+      const lastIdx = next.length - 1;
+      if (lastIdx >= 0 && next[lastIdx].role === "assistant") {
+        next[lastIdx].content += "\n\n_(生成已停止)_";
+      }
+      return next;
+    });
+
+    setLoading(false);
   };
 
   const handleNewChat = () => {
@@ -160,6 +150,7 @@ const Index = () => {
     setSessionId(null);
     setIsTransitioning(false);
     setQuery("");
+    clearFiles();
   };
 
   // 判断是否显示聊天界面
@@ -302,6 +293,7 @@ const Index = () => {
                   placeholder="继续提问..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  disabled={loading}
                   className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
                 />
                 <div className="flex items-center gap-2 shrink-0">
@@ -315,11 +307,17 @@ const Index = () => {
                       variant="secondary"
                       onClick={handleStop}
                       className="h-9 w-9 md:h-10 md:w-10 rounded-full"
+                      title="停止生成"
                     >
                       <Square className="w-5 h-5" />
                     </Button>
                   ) : (
-                    <Button type="submit" size="icon" className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary hover:bg-primary/90">
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={!query.trim()}
+                      className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-50"
+                    >
                       <ArrowUp className="w-5 h-5" />
                     </Button>
                   )}

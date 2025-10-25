@@ -1,4 +1,4 @@
-import { Check, Loader2, AlertCircle, X, Clock } from 'lucide-react';
+import { Check, AlertCircle, X } from 'lucide-react';
 import { FileIconComponent } from './FileIcon';
 import type { UploadFile } from '@/types/file';
 
@@ -10,28 +10,24 @@ interface FileChipProps {
 }
 
 /**
- * 文件缩略图组件 (创新设计)
+ * 文件缩略图组件 (即时问答简化版)
  * - 使用圆角矩形边框作为上传进度指示器
  * - 上传中: 边框逐渐填充显示进度
- * - 上传成功: 边框变为绿色
+ * - 上传成功: 绿色对勾(可用于问答)
  * - 悬停时: 右上角显示删除按钮
  */
 export function FileChip({ file, onRemove }: FileChipProps) {
-  const { name, type, status, materialStatus, progress = 0 } = file;
+  const { name, type, status, progress = 0 } = file;
 
-  // 判断状态
+  // 判断状态(简化版,仅 uploading/success/error)
   const isUploading = status === 'uploading';
-  const isUploaded = status === 'success' && materialStatus === 'uploaded'; // 上传成功,等待解析
-  const isProcessing = status === 'processing' || (status === 'success' && materialStatus === 'processing'); // 解析中
-  const isReady = status === 'success' && materialStatus === 'ready'; // 解析成功
+  const isSuccess = status === 'success'; // 上传完成,可用于问答
   const isError = status === 'error';
 
   // 计算边框颜色
   const getBorderClass = () => {
-    if (isReady) return 'border-green-500 border-2'; // 解析成功 - 绿色
+    if (isSuccess) return 'border-green-500 border-2'; // 上传成功 - 绿色
     if (isError) return 'border-red-500 border-2'; // 错误 - 红色
-    if (isProcessing) return 'border-blue-500 border-2'; // 解析中 - 蓝色
-    if (isUploaded) return 'border-yellow-500 border-2'; // 上传成功,等待解析 - 黄色
     return 'border-border/50';
   };
 
@@ -94,16 +90,8 @@ export function FileChip({ file, onRemove }: FileChipProps) {
 
         {/* 右侧: 状态图标 */}
         <div className="relative w-5 h-5 flex-shrink-0">
-          {isUploaded ? (
-            // 上传成功,等待解析 - 黄色时钟图标(静态)
-            <div className="w-full h-full flex items-center justify-center animate-in zoom-in duration-200">
-              <Clock className="w-5 h-5 text-yellow-500" strokeWidth={2} />
-            </div>
-          ) : isProcessing ? (
-            // 解析中 - 蓝色旋转加载器
-            <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-          ) : isReady ? (
-            // 解析成功 - 绿色对勾
+          {isSuccess ? (
+            // 上传成功 - 绿色对勾
             <div className="w-full h-full flex items-center justify-center animate-in zoom-in duration-200">
               <Check className="w-5 h-5 text-green-500" strokeWidth={3} />
             </div>

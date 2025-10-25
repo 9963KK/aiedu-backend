@@ -183,6 +183,77 @@ npm run dev
 - 体：`{ "message": "...", "courseId": "course_xxx", "materialIds": ["mat_1"], "topK": 8 }`
 - 当前：返回 `501 Not Implemented`。未来将走（BM25→向量）检索增强再回答。
 
+### 7.3 前端调用示例
+
+**即时提问(multipart 形态 - 推荐)**:
+```typescript
+import { askInstant, parseSSEStream } from '@/api/qa';
+
+async function handleInstantQA(message: string, files: File[]) {
+  const controller = new AbortController();
+
+  try {
+    // 调用 API (直接附带文件)
+    const stream = await askInstant(
+      message,
+      files,           // 直接传递 File[] 数组
+      undefined,       // hints 可选
+      controller.signal
+    );
+
+    let assistant = "";
+
+    // 解析 SSE 流
+    await parseSSEStream(stream, {
+      onStart: (data) => {
+        console.log('开始生成, messageId:', data.messageId);
+      },
+      onToken: (token) => {
+        assistant += token;
+        updateAssistantMessage(assistant); // 更新 UI
+      },
+      onEnd: (data) => {
+        console.log('生成完成, messageId:', data.messageId);
+      },
+      onError: (error) => {
+        console.error('生成失败:', error.message);
+      }
+    });
+  } catch (error) {
+    console.error('请求失败:', error);
+  }
+}
+```
+
+**即时提问(JSON 形态)**:
+```typescript
+import { askInstantWithMaterials } from '@/api/qa';
+
+// 使用已上传的材料 ID
+async function handleWithMaterials(message: string, materialIds: string[]) {
+  const stream = await askInstantWithMaterials(message, materialIds);
+  await parseSSEStream(stream, {
+    onToken: (token) => console.log(token),
+  });
+}
+```
+
+**SSE 事件格式示例**:
+```
+data: {"type":"start","messageId":"msg_123"}
+
+data: {"type":"token","content":"你"}
+
+data: {"type":"token","content":"好"}
+
+data: {"type":"end","messageId":"msg_123"}
+```
+
+**错误事件**:
+```
+data: {"type":"error","message":"文件格式不支持"}
+```
+
 —
 
 ## 7. 错误约定与返回风格
