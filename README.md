@@ -1,85 +1,47 @@
-# AIEDU Full-Stack Workspace
+# AIEDU（AI 教育助手）
 
-This repository hosts both the FastAPI backend and the React/Lovable frontend for the AIEDU project. Branches are organised so the full system can be integrated on `main`, while individual stacks remain easy to evolve.
+AIEDU 是一个面向学习者与教学场景打造的智能学习助理项目，旨在将大语言模型与多模态资料相结合，帮助用户高效理解知识、组织学习过程，并沉淀个性化的学习资产。
 
-## Branch Layout
+## 项目背景
 
-- `backend`: FastAPI service powering LLM features and future APIs.
-- `frontend`: UI generated via Lovable (Vite + React + shadcn-ui + Tailwind CSS).
-- `main`: Canonical integration branch that should always build end-to-end.
+在知识爆炸与工具繁多的今天，学习者常常面临“信息过载”“难以坚持”“缺乏高效反馈”等问题。AIEDU 希望通过自然语言交互与多模态理解能力，降低学习门槛，并提供连贯、可持续的学习体验。
 
-## Backend (FastAPI)
+## 项目目标
 
-- Python 3.10+
-- FastAPI, Pydantic, `pydantic-settings`, LangChain placeholder
-- Async HTTP via `httpx`
+- 提供顺畅的对话式学习体验：通过与 AI 对话，快速获得解释、例题、提纲与练习建议。
+- 连接学习资料与上下文：允许用户上传教材、PPT、文档、图片或音视频，逐步实现资料解析与学习引用。
+- 支持课程化组织与进度管理：围绕课程构建学习单元与会话，帮助用户持续推进目标。
+- 兼顾可用性与可扩展性：在保障易用的同时，为未来的鉴权、历史记录、个性化与团队协作预留空间。
 
-### Local setup
+## 面向人群
 
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env  # populate secrets such as TXT_APIKEY
-uvicorn app.main:app --reload
-```
+- 学生与自学者：希望得到即时、准确且具启发性的讲解与练习建议。
+- 教师与助教：用于备课、答疑、作业反馈与学习资料管理的辅助工具。
+- 终身学习者与内容创作者：需要将个人资料沉淀为可检索、可复用的学习资产。
 
-### Tests
+## 主要功能
 
-```bash
-cd backend
-pip install .[dev]  # optional: install test deps from pyproject
-pytest
-```
+- 对话式学习：支持非流式与流式（实时输出）回答，便于长文生成与连续追问。
+- 资料上传与管理：接收常见文档、图片与音视频等多种格式，为后续解析与检索做准备。
+- 课程视角：以课程为单位组织学习，规划学习路径与阶段目标。
+- 个人设置与偏好：为后续个性化与学习画像奠定基础。
 
-### Layout
+## 使用体验概述
 
-```
-backend/
-  app/
-    core/          # configuration, logging, and startup hooks
-    api/           # FastAPI routers and dependencies
-    services/      # business logic and orchestration
-    clients/       # integrations with LLM providers or external APIs
-    schemas/       # pydantic models shared across layers
-  tests/           # pytest-based test suite
-  requirements.txt
-  pyproject.toml
-```
+- 首页即可开始提问，AI 会根据上下文逐步完善回答。
+- 支持连续对话与会话标识，便于在同一主题内深化理解。
+- 后续将支持将上传的资料作为对话参考与引用来源。
 
-## Frontend (Lovable / Vite + React)
+## 发展愿景
 
-- Vite, TypeScript, React
-- shadcn-ui + Tailwind CSS component system
+AIEDU 将持续演进为“学习操作系统”：
 
-### Local setup
+- 更强的多模态理解与检索能力
+- 课程/任务/笔记的闭环管理
+- 面向团队与课堂的协作支持
+- 可观测的学习过程与成效评估
 
-The UI is generated and synced via Lovable. You can continue iterating on the hosted editor or work locally:
+## 文档与沟通
 
-```bash
-cd frontend
-# install dependencies (requires Node.js; nvm recommended)
-npm install
-
-# run the dev server with hot reload
-npm run dev
-```
-
-Lovable dashboard for this project: `https://lovable.dev/projects/8a04d4fc-b640-4afb-abea-b16705cbf903`
-
-## Working Across Branches
-
-1. Update specialised branches:
-   - Backend: `git checkout backend && git pull`
-   - Frontend: `git checkout frontend && git pull`
-2. Merge into `main` once both sides build and pass checks:
-   - `git checkout main`
-   - `git merge backend`
-   - `git merge frontend`
-3. Push `main` to share a consistent snapshot of the entire platform.
-
-## Deployment Notes
-
-- Frontend deploys directly from Lovable (Share → Publish). Custom domains can be configured in the Lovable project settings.
-- Backend deployment strategy is open; Docker + cloud hosting can be added when ready.
+- 统一接口与说明文档：`docs/API.md`（作为前后端对接的唯一来源）
+- 反馈建议：欢迎通过 Issue 提交想法与需求
