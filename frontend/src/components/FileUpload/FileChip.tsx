@@ -1,4 +1,4 @@
-import { Check, Loader2, AlertCircle, X } from 'lucide-react';
+import { Check, Loader2, AlertCircle, X, Clock } from 'lucide-react';
 import { FileIconComponent } from './FileIcon';
 import type { UploadFile } from '@/types/file';
 
@@ -94,9 +94,9 @@ export function FileChip({ file, onRemove }: FileChipProps) {
         {/* 右侧: 状态图标 */}
         <div className="relative w-5 h-5 flex-shrink-0">
           {isUploaded ? (
-            // 上传成功,等待解析 - 黄色时钟图标
+            // 上传成功,等待解析 - 黄色时钟图标(静态)
             <div className="w-full h-full flex items-center justify-center animate-in zoom-in duration-200">
-              <Loader2 className="w-5 h-5 text-yellow-500" />
+              <Clock className="w-5 h-5 text-yellow-500" strokeWidth={2} />
             </div>
           ) : isProcessing ? (
             // 解析中 - 蓝色旋转加载器
