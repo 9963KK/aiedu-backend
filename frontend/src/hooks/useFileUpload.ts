@@ -92,13 +92,13 @@ export function useFileUpload() {
 
       const { materialId, status } = response.data;
 
-      // 上传成功,更新状态
+      // 上传成功,更新状态为 uploading (显示绿色勾)
       setFiles((prev) =>
         prev.map((f) =>
           f.id === uploadFile.id
             ? {
                 ...f,
-                status: status === 'ready' || status === 'uploaded' ? 'success' : 'processing',
+                status: 'uploading', // 保持 uploading 状态显示绿色勾
                 progress: 100,
                 materialId,
                 materialStatus: status,
@@ -106,6 +106,20 @@ export function useFileUpload() {
             : f
         )
       );
+
+      // 延迟 1 秒后转换为缩略图
+      setTimeout(() => {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id
+              ? {
+                  ...f,
+                  status: status === 'ready' || status === 'uploaded' ? 'success' : 'processing',
+                }
+              : f
+          )
+        );
+      }, 1000);
 
       // 开始轮询处理状态 (只有在 processing 或 queued 状态时才轮询)
       if (status === 'processing' || status === 'queued') {
