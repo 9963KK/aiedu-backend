@@ -291,7 +291,6 @@ const Index = () => {
                   placeholder="继续提问..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  disabled={loading}
                   className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-0"
                 />
                 <div className="flex items-center gap-2 shrink-0">
