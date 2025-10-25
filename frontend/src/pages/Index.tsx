@@ -46,12 +46,11 @@ const Index = () => {
 
     try {
       // 调用新 QA API (multipart 形态,直接附带文件)
-      const stream = await askInstant(
-        text,
-        files.map(f => f.file), // 直接传递 File 对象数组
-        undefined, // hints (可选)
-        controller.signal
-      );
+      const hints: any = {
+        sessionId: sessionId || undefined,
+        previousMessages: messages.map(m => ({ role: m.role, content: m.content })).slice(-10),
+      };
+      const stream = await askInstant(text, files.map(f => f.file), hints, controller.signal);
 
       let assistant = "";
       let messageId = "";
@@ -60,9 +59,8 @@ const Index = () => {
       await parseSSEStream(stream, {
         onStart: (data) => {
           messageId = data.messageId;
-          if (!sessionId) {
-            setSessionId(messageId); // 使用 messageId 作为 sessionId
-          }
+          // 后端暂未发 sessionId，这里仍然以首条消息ID作为会话标识
+          if (!sessionId) setSessionId(messageId);
         },
         onToken: (token) => {
           // 清理首个 token 的前导空白
