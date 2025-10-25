@@ -186,30 +186,7 @@ const Index = () => {
             今天想学点什么?
           </h1>
           <div className="relative space-y-4">
-            {/* 文件上传区域 - 只在有文件时显示,避免空白占位 */}
-            {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 max-w-2xl mx-auto mb-4 animate-in slide-in-from-top-2 duration-300">
-                {/* 上传中的文件 - 显示进度 */}
-                {files.filter(f => f.status === 'uploading').map(file => (
-                  <div key={file.id} className="w-full">
-                    <FileUploadProgress
-                      file={file}
-                      onCancel={() => cancelUpload(file.id)}
-                    />
-                  </div>
-                ))}
-
-                {/* 上传完成的文件 - 紧凑缩略图 */}
-                {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
-                  <FileChip
-                    key={file.id}
-                    file={file}
-                    onRemove={() => removeFile(file.id)}
-                  />
-                ))}
-              </div>
-            )}
-
+            {/* 输入框 */}
             <form
               onSubmit={handleSubmit}
               className="relative"
@@ -234,6 +211,30 @@ const Index = () => {
                 </div>
               </div>
             </form>
+
+            {/* 文件上传区域 - 显示在输入框下方 */}
+            {files.length > 0 && (
+              <div className="flex flex-wrap gap-2 max-w-2xl mx-auto animate-in slide-in-from-bottom-2 duration-300">
+                {/* 上传中的文件 - 显示进度 */}
+                {files.filter(f => f.status === 'uploading').map(file => (
+                  <div key={file.id} className="w-full">
+                    <FileUploadProgress
+                      file={file}
+                      onCancel={() => cancelUpload(file.id)}
+                    />
+                  </div>
+                ))}
+
+                {/* 上传完成的文件 - 紧凑缩略图 */}
+                {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                  <FileChip
+                    key={file.id}
+                    file={file}
+                    onRemove={() => removeFile(file.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -303,32 +304,6 @@ const Index = () => {
 
           {/* 聊天页输入框 */}
           <div className="fixed left-0 right-0 bottom-6 md:bottom-8 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-sm animate-in slide-in-from-bottom duration-500 ease-out">
-            {/* 文件上传区域 - 紧凑模式 */}
-            {files.length > 0 && (
-              <div className="mx-auto max-w-3xl px-4 pb-2">
-                <div className="flex flex-wrap gap-2">
-                  {/* 上传中的文件 - 显示进度 */}
-                  {files.filter(f => f.status === 'uploading').map(file => (
-                    <div key={file.id} className="w-full">
-                      <FileUploadProgress
-                        file={file}
-                        onCancel={() => cancelUpload(file.id)}
-                      />
-                    </div>
-                  ))}
-
-                  {/* 上传完成的文件 - 紧凑缩略图 */}
-                  {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
-                    <FileChip
-                      key={file.id}
-                      file={file}
-                      onRemove={() => removeFile(file.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* 输入框 */}
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl px-4 pb-2 pt-1">
               <div className="flex items-center gap-3 px-5 py-3 md:px-6 md:py-3 rounded-full border-2 bg-card shadow-2xl hover:shadow-xl transition-shadow">
@@ -362,6 +337,32 @@ const Index = () => {
                 </div>
               </div>
             </form>
+
+            {/* 文件上传区域 - 显示在输入框下方 */}
+            {files.length > 0 && (
+              <div className="mx-auto max-w-3xl px-4 pt-2 pb-2">
+                <div className="flex flex-wrap gap-2">
+                  {/* 上传中的文件 - 显示进度 */}
+                  {files.filter(f => f.status === 'uploading').map(file => (
+                    <div key={file.id} className="w-full">
+                      <FileUploadProgress
+                        file={file}
+                        onCancel={() => cancelUpload(file.id)}
+                      />
+                    </div>
+                  ))}
+
+                  {/* 上传完成的文件 - 紧凑缩略图 */}
+                  {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                    <FileChip
+                      key={file.id}
+                      file={file}
+                      onRemove={() => removeFile(file.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </main>
       )}
