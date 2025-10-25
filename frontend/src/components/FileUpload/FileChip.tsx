@@ -36,13 +36,14 @@ export function FileChip({ file, onRemove }: FileChipProps) {
   };
 
   // 计算圆角矩形周长进度 (用于 SVG 描边动画)
-  // 假设矩形宽度约 240px, 高度约 36px, 圆角 18px
-  const width = 240;
+  // 动态计算宽度,根据文件名长度
   const height = 36;
   const borderRadius = 18;
+  // 基础宽度 + 文件名长度估算 (每个字符约 8px)
+  const estimatedWidth = Math.max(180, Math.min(320, 120 + name.length * 8));
 
   // 圆角矩形周长近似计算: 2*(w+h) - 4*r + 2*π*r
-  const perimeter = 2 * (width + height) - 4 * borderRadius + 2 * Math.PI * borderRadius;
+  const perimeter = 2 * (estimatedWidth + height) - 4 * borderRadius + 2 * Math.PI * borderRadius;
   const dashOffset = perimeter * (1 - progress / 100);
 
   return (
@@ -51,14 +52,14 @@ export function FileChip({ file, onRemove }: FileChipProps) {
       {isUploading && (
         <svg
           className="absolute inset-0 pointer-events-none"
-          width={width}
+          width={estimatedWidth}
           height={height}
           style={{ overflow: 'visible' }}
         >
           <rect
             x="1"
             y="1"
-            width={width - 2}
+            width={estimatedWidth - 2}
             height={height - 2}
             rx={borderRadius}
             ry={borderRadius}
@@ -76,7 +77,7 @@ export function FileChip({ file, onRemove }: FileChipProps) {
       {/* 文件内容卡片 */}
       <div
         className={`inline-flex items-center justify-between gap-2 px-3 py-1.5 bg-muted/50 rounded-full hover:bg-muted/70 transition-all ${getBorderClass()}`}
-        style={{ minWidth: `${width}px`, height: `${height}px` }}
+        style={{ height: `${height}px` }}
       >
         {/* 左侧: 文件图标 + 文件名 */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
