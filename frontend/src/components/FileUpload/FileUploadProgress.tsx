@@ -1,3 +1,37 @@
+type UploadingFile = {
+  id: string;
+  name: string;
+  progress: number; // 0-100
+};
+
+export function FileUploadProgress({ file, onCancel }: { file: UploadingFile; onCancel: () => void }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow">
+      <div className="relative h-8 w-8">
+        <svg className="absolute inset-0" viewBox="0 0 36 36">
+          <path
+            className="text-muted stroke-current"
+            d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            strokeWidth="3"
+            opacity="0.2"
+          />
+          <path
+            className="text-primary stroke-current"
+            d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            strokeWidth="3"
+            strokeDasharray={`${file.progress}, 100`}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center text-xs">{Math.round(file.progress)}%</div>
+      </div>
+      <div className="min-w-0 flex-1 truncate text-sm">{file.name}</div>
+      <button onClick={onCancel} className="text-xs text-muted-foreground hover:text-foreground">取消</button>
+    </div>
+  );
+}
+
 import { X, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FileIconComponent } from './FileIcon';

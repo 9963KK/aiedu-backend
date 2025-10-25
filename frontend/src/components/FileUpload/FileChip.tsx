@@ -1,3 +1,19 @@
+export type FileChipItem = {
+  id: string;
+  name: string;
+  status: "processing" | "success" | "error";
+};
+
+export function FileChip({ file, onRemove }: { file: FileChipItem; onRemove: () => void }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 shadow">
+      <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+      {file.status === "error" && <span className="text-red-500">!</span>}
+      <button onClick={onRemove} className="text-muted-foreground hover:text-foreground">✕</button>
+    </div>
+  );
+}
+
 import { X, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FileIconComponent } from './FileIcon';
