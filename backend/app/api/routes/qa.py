@@ -15,9 +15,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+
+from app.services.llm_service import LLMService, get_llm_service
 
 
 router = APIRouter(prefix="/qa", tags=["qa"])
@@ -34,7 +36,7 @@ def _format_sse(payload: dict[str, Any]) -> str:
 
 
 @router.post("/instant")
-async def qa_instant(request: Request) -> StreamingResponse:
+async def qa_instant(request: Request, llm_service: LLMService = Depends(get_llm_service)) -> StreamingResponse:
     """Multimodal instant Q&A (placeholder streaming).
 
     Accepts either multipart/form-data or application/json:
@@ -63,19 +65,32 @@ async def qa_instant(request: Request) -> StreamingResponse:
         material_ids = payload.material_ids
 
     async def stream() -> Any:
-        yield _format_sse({"type": "start", "messageId": "msg_stub"})
-        intro = "已收到文件上传" if file_count else "使用已上传材料" if material_ids else "纯文本提问"
-        info_parts: list[str] = []
-        if file_count:
-            info_parts.append(f"文件数: {file_count}")
-        if material_ids:
-            info_parts.append(f"材料ID: {len(material_ids)} 个")
-        if info_parts:
-            yield _format_sse({"type": "token", "content": f"{intro}（" + "，".join(info_parts) + "）。"})
-        yield _format_sse({"type": "token", "content": f"问题：{message}\n"})
-        # placeholder conclusion
-        yield _format_sse({"type": "token", "content": "（VLM 接入后将在此处返回多模态解析结果。）"})
-        yield _format_sse({"type": "end", "messageId": "msg_stub"})
+        # 将旧版 /llm/messages/stream 的核心逻辑迁移到此：
+        # 1) 发送 start
+        # 2) 逐个 token 下发
+        # 3) 结束事件 end
+        message_id = "msg_stub"
+        yield _format_sse({"type": "start", "messageId": message_id})
+
+        if not message:
+            yield _format_sse({"type": "error", "message": "message 不能为空"})
+            return
+
+        # 目前忽略上传的文件/材料 ID，仅以文本对话回答；后续接入 VLM 解析。
+        messages = [{"role": "user", "content": message}]
+
+        try:
+            async for chunk in llm_service.stream_completion(messages=messages):
+                if chunk.type == "content" and chunk.content:
+                    yield _format_sse({"type": "token", "content": chunk.content})
+                elif chunk.type == "end":
+                    event_payload: dict[str, Any] = {"type": "end", "messageId": message_id}
+                    if chunk.model:
+                        event_payload["model"] = chunk.model
+                    yield _format_sse(event_payload)
+                    break
+        except ValueError as exc:
+            yield _format_sse({"type": "error", "message": str(exc)})
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
 
