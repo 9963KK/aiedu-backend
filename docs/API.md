@@ -198,11 +198,15 @@ data: {"type":"error","message":"模型超时"}
 ### 5.3 原始文件下载 URL（未实现）
 - 方法：GET `/materials/{materialId}/original-url` → 返回 `501 Not Implemented`
 
-### 5.4 文本块/字幕片段（占位）
-- 方法：GET `/materials/{materialId}/chunks`（参数：`offset`,`limit`,`type=text|caption`）
+### 5.4 文本块/字幕片段
+- 方法：GET `/materials/{materialId}/chunks`
+- 查询参数：`offset`（默认0）、`limit`（默认100）、`type=text|caption|subtitle`（可选）
+- 说明：从材料目录的 `chunks.jsonl` 按行读取并分页返回；字段包括 `id,type,text,loc`。
 
-### 5.5 重新解析（占位）
+### 5.5 重新解析
 - 方法：POST `/materials/{materialId}/parse`（参数：`mode=auto|vision|asr|text`）
+- 文档类（pdf/ppt/doc）：由后端调用 MinerU 进行解析，生成 `parsed.md` 与 `chunks.jsonl`。
+- 其它类型：后续逐步接入（图片经 VQA 路由后决定是否走 MinerU；音频走 ASR）。
 
 ### 5.6 取消解析（占位）
 - 方法：POST `/materials/{materialId}/cancel`

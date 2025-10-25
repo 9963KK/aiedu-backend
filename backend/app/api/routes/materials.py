@@ -144,9 +144,36 @@ async def list_chunks(
     limit: int = 100,
     type: Literal["text", "caption"] | None = None,
 ) -> dict[str, Any]:
-    # Placeholder: return empty list, wired for future parser output
+    tmp_dir = _ensure_tmp_dir() / material_id
+    if not tmp_dir.exists():
+        raise HTTPException(status_code=404, detail="Material not found")
+
+    chunks_path = tmp_dir / "chunks.jsonl"
+    if not chunks_path.exists():
+        return {"data": {"items": [], "pagination": {"offset": offset, "limit": limit, "total": 0}}, "error": None}
+
     items: list[dict[str, Any]] = []
-    return {"data": {"items": items, "pagination": {"offset": offset, "limit": limit, "total": 0}}, "error": None}
+    total = 0
+    with chunks_path.open("r", encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                continue
+            if type and obj.get("type") != type:
+                total += 1
+                continue
+            total += 1
+            idx = total - 1
+            if idx < offset:
+                continue
+            if len(items) >= limit:
+                break
+            items.append(obj)
+
+    return {"data": {"items": items, "pagination": {"offset": offset, "limit": limit, "total": total}}, "error": None}
 
 
 @router.post("/{material_id}/parse")
