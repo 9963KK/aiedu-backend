@@ -98,6 +98,11 @@ class OpenAIClient(LLMClient):
                 try:
                     response.raise_for_status()
                 except httpx.HTTPStatusError as exc:
+                    # 对于 streaming 响应,需要先读取 body 再解析错误信息
+                    try:
+                        await exc.response.aread()
+                    except Exception:
+                        pass
                     detail = _extract_error_detail(exc.response)
                     msg = f"OpenAI streaming request failed: {detail}"
                     raise ValueError(msg) from exc
