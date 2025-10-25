@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Mic, ArrowUp, Square, Bot, ArrowLeft } from "lucide-react";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { FileUploadButton } from "@/components/FileUpload/FileUploadButton";
-import { FileUploadProgress } from "@/components/FileUpload/FileUploadProgress";
 import { FileChip } from "@/components/FileUpload/FileChip";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useEffect, useRef, useState } from "react";
@@ -215,22 +214,12 @@ const Index = () => {
             {/* 文件上传区域 - 显示在输入框下方,左对齐 */}
             {files.length > 0 && (
               <div className="flex flex-wrap gap-2 max-w-2xl animate-in slide-in-from-bottom-2 duration-300">
-                {/* 上传中的文件 - 显示进度 */}
-                {files.filter(f => f.status === 'uploading').map(file => (
-                  <div key={file.id} className="w-full">
-                    <FileUploadProgress
-                      file={file}
-                      onCancel={() => cancelUpload(file.id)}
-                    />
-                  </div>
-                ))}
-
-                {/* 上传完成的文件 - 紧凑缩略图 */}
-                {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                {/* 所有文件统一使用 FileChip 显示 */}
+                {files.map(file => (
                   <FileChip
                     key={file.id}
                     file={file}
-                    onRemove={() => removeFile(file.id)}
+                    onRemove={() => file.status === 'uploading' ? cancelUpload(file.id) : removeFile(file.id)}
                   />
                 ))}
               </div>
@@ -342,22 +331,12 @@ const Index = () => {
             {files.length > 0 && (
               <div className="mx-auto max-w-3xl px-4 pt-2 pb-2">
                 <div className="flex flex-wrap gap-2">
-                  {/* 上传中的文件 - 显示进度 */}
-                  {files.filter(f => f.status === 'uploading').map(file => (
-                    <div key={file.id} className="w-full">
-                      <FileUploadProgress
-                        file={file}
-                        onCancel={() => cancelUpload(file.id)}
-                      />
-                    </div>
-                  ))}
-
-                  {/* 上传完成的文件 - 紧凑缩略图 */}
-                  {files.filter(f => f.status === 'processing' || f.status === 'success' || f.status === 'error').map(file => (
+                  {/* 所有文件统一使用 FileChip 显示 */}
+                  {files.map(file => (
                     <FileChip
                       key={file.id}
                       file={file}
-                      onRemove={() => removeFile(file.id)}
+                      onRemove={() => file.status === 'uploading' ? cancelUpload(file.id) : removeFile(file.id)}
                     />
                   ))}
                 </div>
