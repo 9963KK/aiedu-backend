@@ -62,16 +62,22 @@ export async function parseSSEStream(
 
       buffer += decoder.decode(value, { stream: true });
 
-      // 以双换行符分隔事件
-      const events = buffer.split('\n\n');
+      // 以双换行符分隔事件（兼容 \r\n）
+      const events = buffer.split(/\r?\n\r?\n/);
       buffer = events.pop() ?? '';
 
       for (const evt of events) {
-        const line = evt.trim();
-        if (!line.startsWith('data:')) continue;
-
-        const jsonStr = line.slice('data:'.length).trim();
-        if (!jsonStr) continue;
+        // 聚合多行 data: 的内容
+        const lines = evt.split(/\r?\n/);
+        const dataLines: string[] = [];
+        for (const ln of lines) {
+          const t = ln.trim();
+          if (t.startsWith('data:')) {
+            dataLines.push(t.slice('data:'.length).trim());
+          }
+        }
+        if (dataLines.length === 0) continue;
+        const jsonStr = dataLines.join('\n');
 
         let payload: QASSEEvent;
         try {
@@ -140,6 +146,9 @@ export async function askInstant(
 
   const response = await fetch(`${API_BASE_URL}/qa/instant`, {
     method: 'POST',
+    headers: {
+      'Accept': 'text/event-stream',
+    },
     body: formData,
     signal,
   });
@@ -179,6 +188,7 @@ export async function askInstantWithMaterials(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
     },
     body: JSON.stringify({
       message,

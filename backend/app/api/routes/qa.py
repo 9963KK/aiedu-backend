@@ -104,7 +104,16 @@ async def qa_instant(request: Request, llm_service: LLMService = Depends(get_llm
         except ValueError as exc:
             yield _format_sse({"type": "error", "message": str(exc)})
 
-    return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+    # 明确 SSE 推荐响应头
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # 兼容某些代理禁用缓冲
+        },
+    )
 
 
 @router.post("/knowledge")
