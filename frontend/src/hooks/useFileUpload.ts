@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { UploadFile } from '@/types/file';
 import { generateFileId, getFileType } from '@/lib/file-utils';
-import { uploadMaterial, pollMaterialStatus, deleteMaterial, cancelMaterialParsing } from '@/api/materials';
+import { uploadMaterial, getMaterialStatus, deleteMaterial, cancelMaterialParsing } from '@/api/materials';
 
 /** 最大并发上传数 */
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -18,6 +18,9 @@ export function useFileUpload() {
   // 上传队列管理
   const uploadQueueRef = useRef<UploadFile[]>([]);
   const activeUploadsRef = useRef<number>(0);
+
+  // 轮询控制器映射 (fileId -> AbortController)
+  const pollingControllersRef = useRef<Map<string, AbortController>>(new Map());
 
   /**
    * 添加文件到上传列表
@@ -157,13 +160,26 @@ export function useFileUpload() {
   };
 
   /**
-   * 轮询材料处理状态
+   * 轮询材料处理状态(可中断)
    */
   const pollStatus = async (fileId: string, materialId: string, maxRetries: number = 60) => {
+    // 创建轮询控制器
+    const controller = new AbortController();
+    pollingControllersRef.current.set(fileId, controller);
+
     try {
-      await pollMaterialStatus(
-        materialId,
-        (response) => {
+      let retries = 0;
+
+      while (retries < maxRetries && !controller.signal.aborted) {
+        try {
+          const response = await getMaterialStatus(materialId);
+
+          // 检查是否已被中断
+          if (controller.signal.aborted) {
+            break;
+          }
+
+          // 更新状态
           setFiles((prev) =>
             prev.map((f) =>
               f.id === fileId
@@ -180,23 +196,48 @@ export function useFileUpload() {
                 : f
             )
           );
-        },
-        maxRetries,
-        2000
-      );
+
+          // 如果处理完成或失败,停止轮询
+          if (response.data.status === 'ready' || response.data.status === 'failed') {
+            break;
+          }
+
+          // 等待后继续轮询
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          retries++;
+        } catch (error: any) {
+          // 404 表示材料已被删除,停止轮询
+          if (error?.status === 404) {
+            console.log(`材料已删除,停止轮询: ${materialId}`);
+            break;
+          }
+
+          // 其他错误,重试
+          retries++;
+          if (retries >= maxRetries) {
+            throw error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
     } catch (error: any) {
-      // 轮询超时或失败
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === fileId
-            ? {
-                ...f,
-                status: 'error',
-                error: error?.message || '处理超时',
-              }
-            : f
-        )
-      );
+      // 轮询超时或失败(忽略 aborted)
+      if (!controller.signal.aborted) {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? {
+                  ...f,
+                  status: 'error',
+                  error: error?.message || '处理超时',
+                }
+              : f
+          )
+        );
+      }
+    } finally {
+      // 清理控制器
+      pollingControllersRef.current.delete(fileId);
     }
   };
 
@@ -229,6 +270,14 @@ export function useFileUpload() {
    */
   const removeFile = useCallback(async (fileId: string) => {
     const file = files.find((f) => f.id === fileId);
+
+    // 停止轮询(如果正在轮询)
+    const pollingController = pollingControllersRef.current.get(fileId);
+    if (pollingController) {
+      pollingController.abort();
+      pollingControllersRef.current.delete(fileId);
+      console.log(`已停止轮询: ${fileId}`);
+    }
 
     // 如果有 materialId,根据状态调用不同的后端接口
     if (file?.materialId) {
