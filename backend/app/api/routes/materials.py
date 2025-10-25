@@ -17,6 +17,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.services.parse_service import ParseService
 
 
 router = APIRouter(prefix="/materials", tags=["materials"])
@@ -150,10 +151,24 @@ async def list_chunks(
 
 @router.post("/{material_id}/parse")
 async def reparse(material_id: str, mode: Literal["auto", "vision", "asr", "text"] = "auto") -> dict[str, Any]:
-    # Placeholder: accept and return current status
+    """Trigger parsing for a material. For documents, call MinerU."""
     tmp_dir = _ensure_tmp_dir() / material_id
     if not tmp_dir.exists():
         raise HTTPException(status_code=404, detail="Material not found")
+
+    # find the first file in the material dir
+    try:
+        file_path = next(p for p in tmp_dir.iterdir() if p.is_file())
+    except StopIteration as exc:
+        raise HTTPException(status_code=400, detail="No file found for material") from exc
+
+    suffix = file_path.suffix.lower().lstrip(".")
+    if suffix in {"pdf", "ppt", "pptx", "doc", "docx"}:
+        svc = ParseService()
+        result = await svc.parse_document_via_mineru(material_id=material_id, filename=file_path.name)
+        return {"data": {"materialId": material_id, **result}, "error": None}
+
+    # audio handled later via ASR; others no-op for now
     return {"data": {"materialId": material_id, "accepted": True, "mode": mode}, "error": None}
 
 
