@@ -1,8 +1,4 @@
-import type {
-  MaterialUploadResponse,
-  MaterialStatusResponse,
-  MaterialChunksResponse,
-} from '@/types/file';
+import type { MaterialUploadResponse, MaterialStatusResponse, MaterialChunksResponse } from '@/types/file';
 import { API_BASE_URL, ApiError } from '@/lib/api-client';
 
 /**
@@ -173,7 +169,7 @@ export async function getMaterialChunks(
   options?: {
     offset?: number;
     limit?: number;
-    type?: 'text' | 'caption';
+    type?: 'text' | 'caption' | 'subtitle';
   }
 ): Promise<MaterialChunksResponse> {
   const params = new URLSearchParams();
@@ -204,6 +200,23 @@ export async function getMaterialChunks(
     throw new ApiError(errorMessage, response.status);
   }
 
+  return response.json();
+}
+
+/**
+ * 触发材料解析（与类型无关，由后端自动分路）
+ * 对应后端 POST /api/materials/{materialId}/parse
+ */
+export async function parseMaterial(materialId: string): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/materials/${materialId}/parse`, { method: 'POST' });
+  if (!response.ok) {
+    let errorMessage = `HTTP ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData?.detail || errorData?.error?.message || errorMessage;
+    } catch {}
+    throw new ApiError(errorMessage, response.status);
+  }
   return response.json();
 }
 

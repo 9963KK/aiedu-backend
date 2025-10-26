@@ -130,17 +130,17 @@ export interface MaterialStatusResponse {
  */
 export interface MaterialChunksResponse {
   data: {
-    chunks: Array<{
+    items: Array<{
       /** 片段 ID */
       id: string;
-      /** 片段内容 */
-      content: string;
-      /** 片段类型 (text/caption) */
-      type: 'text' | 'caption';
-      /** 时间戳(秒,仅音视频) */
-      timestamp?: number;
+      /** 片段类型 */
+      type: 'text' | 'caption' | 'subtitle';
+      /** 文本内容 */
+      text: string;
+      /** 位置: 页码或时间范围 */
+      loc?: { page?: number; startSec?: number; endSec?: number };
     }>;
-    total: number;
+    pagination: { offset: number; limit: number; total: number };
   };
   error: null | {
     code: string;

@@ -2,14 +2,14 @@
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Runtime configuration sourced via environment variables and .env."""
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = Field(default="AIEDU Backend", alias="APP_NAME")
     debug: bool = Field(default=False, alias="APP_DEBUG")
@@ -47,7 +47,11 @@ class Settings(BaseSettings):
 
     # MinerU configuration (document/image parsing)
     mineru_base_url: str | None = Field(default=None, alias="MINERU_BASEURL")
-    mineru_api_key: str | None = Field(default=None, alias="MINERU_APIKEY")
+    mineru_api_key: str | None = Field(
+        default=None,
+        alias="MINERU_APIKEY",
+        validation_alias=AliasChoices("MINERU_APIKEY", "MINERU_TOKEN"),
+    )
 
     # Vision model for PDF/PPT/Image parsing (placeholder configuration)
     vqa_provider: str | None = Field(default=None, alias="VQA_PROVIDER")
