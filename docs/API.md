@@ -207,7 +207,8 @@ data: {"type":"error","message":"模型超时"}
 ### 5.5 重新解析
 - 方法：POST `/materials/{materialId}/parse`（参数：`mode=auto|vision|asr|text`）
 - 文档类（pdf/ppt/doc）：由后端调用 MinerU 进行解析，生成 `parsed.md` 与 `chunks.jsonl`。
-- 其它类型：后续逐步接入（图片经 VQA 路由后决定是否走 MinerU；音频走 ASR）。
+- 图片：先由 VQA 路由分类（text-heavy/table → 调用 MinerU；diagram/chart/photo → 生成要点摘要作为 caption）。
+- 音频：仅走 ASR，生成 `subtitle` 片段（含 `startSec/endSec`）。
 
 ### 5.6 取消解析（占位）
 - 方法：POST `/materials/{materialId}/cancel`

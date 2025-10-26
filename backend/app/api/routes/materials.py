@@ -201,6 +201,11 @@ async def reparse(material_id: str, mode: Literal["auto", "vision", "asr", "text
         result = await svc.parse_audio_via_asr(material_id=material_id, filename=file_path.name)
         return {"data": {"materialId": material_id, **result}, "error": None}
 
+    if suffix in {"jpg", "jpeg", "png"}:
+        svc = ParseService()
+        result = await svc.parse_image_with_routing(material_id=material_id, filename=file_path.name)
+        return {"data": {"materialId": material_id, **result}, "error": None}
+
     # others no-op for now
     return {"data": {"materialId": material_id, "accepted": True, "mode": mode}, "error": None}
 

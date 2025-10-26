@@ -17,6 +17,7 @@ from typing import Any
 
 from app.clients.mineru_client import MinerUClient
 from app.clients.asr_client import ASRClient
+from app.clients.vqa_client import VQAClient
 from app.core.config import settings
 
 
@@ -32,6 +33,12 @@ class ParseService:
             base_url=settings.asr_base_url,
             api_key=settings.asr_api_key,
             model=settings.asr_model,
+            timeout=settings.request_timeout_seconds,
+        )
+        self.vqa = VQAClient(
+            base_url=settings.vqa_base_url,
+            api_key=settings.vqa_api_key,
+            model=settings.vqa_model,
             timeout=settings.request_timeout_seconds,
         )
 
@@ -98,6 +105,46 @@ class ParseService:
                 }
             )
 
+        with (mdir / "chunks.jsonl").open("a", encoding="utf-8") as f:
+            for ch in chunks:
+                f.write(json.dumps(ch, ensure_ascii=False) + "\n")
+
+        return {"ready": True, "chunks": len(chunks)}
+
+    async def parse_image_with_routing(self, material_id: str, filename: str) -> dict[str, Any]:
+        mdir = self._material_dir(material_id)
+        src = mdir / filename
+        if not src.exists():
+            raise FileNotFoundError("material file not found")
+
+        img_bytes = src.read_bytes()
+        cls = await self.vqa.classify(file_bytes=img_bytes, filename=src.name)
+
+        chunks: list[dict[str, Any]] = []
+        markdown_lines: list[str] = []
+
+        if cls.label in {"text_heavy", "table"}:
+            # Route to MinerU image parsing (OCR/table). User agreed: only images flagged by router use MinerU.
+            data = await self.mineru.parse_image(file_bytes=img_bytes, filename=src.name)
+            text = (data.get("text") or "").strip()
+            if text:
+                markdown_lines.append(text)
+                chunks.append({"id": "img_text", "type": "text", "text": text, "loc": {}})
+            # Optional: table markdown if provided
+            for idx, tbl in enumerate(data.get("tables") or [], start=1):
+                md = tbl.get("markdown") or ""
+                if md:
+                    markdown_lines.append(f"\n\n### Table {idx}\n\n{md}")
+                    chunks.append({"id": f"img_tbl_{idx}", "type": "text", "text": md, "loc": {}})
+        else:
+            # For diagram/photo/chart: produce brief bullets via VQA (placeholder).
+            summary = f"Image classified as {cls.label} (p={cls.confidence:.2f})."
+            markdown_lines.append(summary)
+            chunks.append({"id": "img_caption", "type": "caption", "text": summary, "loc": {}})
+
+        if markdown_lines:
+            with (mdir / "parsed.md").open("a", encoding="utf-8") as f:
+                f.write("\n" + "\n".join(markdown_lines))
         with (mdir / "chunks.jsonl").open("a", encoding="utf-8") as f:
             for ch in chunks:
                 f.write(json.dumps(ch, ensure_ascii=False) + "\n")
