@@ -196,7 +196,12 @@ async def reparse(material_id: str, mode: Literal["auto", "vision", "asr", "text
         result = await svc.parse_document_via_mineru(material_id=material_id, filename=file_path.name)
         return {"data": {"materialId": material_id, **result}, "error": None}
 
-    # audio handled later via ASR; others no-op for now
+    if suffix in {"mp3", "m4a", "wav"}:
+        svc = ParseService()
+        result = await svc.parse_audio_via_asr(material_id=material_id, filename=file_path.name)
+        return {"data": {"materialId": material_id, **result}, "error": None}
+
+    # others no-op for now
     return {"data": {"materialId": material_id, "accepted": True, "mode": mode}, "error": None}
 
 

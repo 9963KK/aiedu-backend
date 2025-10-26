@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from app.clients.mineru_client import MinerUClient
+from app.clients.asr_client import ASRClient
 from app.core.config import settings
 
 
@@ -25,6 +26,12 @@ class ParseService:
         self.mineru = MinerUClient(
             base_url=(settings.mineru_base_url or "http://localhost:8001"),
             api_key=settings.mineru_api_key,
+            timeout=settings.request_timeout_seconds,
+        )
+        self.asr = ASRClient(
+            base_url=settings.asr_base_url,
+            api_key=settings.asr_api_key,
+            model=settings.asr_model,
             timeout=settings.request_timeout_seconds,
         )
 
@@ -70,6 +77,31 @@ class ParseService:
                 f.write(json.dumps(ch, ensure_ascii=False) + "\n")
 
         (mdir / "status.txt").write_text("ready", encoding="utf-8")
+        return {"ready": True, "chunks": len(chunks)}
+
+    async def parse_audio_via_asr(self, material_id: str, filename: str) -> dict[str, Any]:
+        mdir = self._material_dir(material_id)
+        src = mdir / filename
+        if not src.exists():
+            raise FileNotFoundError("material file not found")
+
+        result = await self.asr.transcribe(file_bytes=src.read_bytes(), filename=src.name)
+
+        chunks: list[dict[str, Any]] = []
+        for idx, seg in enumerate(result.get("segments") or [], start=1):
+            chunks.append(
+                {
+                    "id": f"s{idx}",
+                    "type": "subtitle",
+                    "text": seg.get("text", ""),
+                    "loc": {"startSec": seg.get("start"), "endSec": seg.get("end")},
+                }
+            )
+
+        with (mdir / "chunks.jsonl").open("a", encoding="utf-8") as f:
+            for ch in chunks:
+                f.write(json.dumps(ch, ensure_ascii=False) + "\n")
+
         return {"ready": True, "chunks": len(chunks)}
 
 
