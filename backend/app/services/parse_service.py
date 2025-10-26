@@ -25,7 +25,7 @@ class ParseService:
     def __init__(self) -> None:
         self.tmp_base = Path(settings.storage_tmp_dir)
         self.mineru = MinerUClient(
-            base_url=(settings.mineru_base_url or "http://localhost:8001"),
+            base_url=(settings.mineru_base_url or "https://mineru.net"),
             api_key=settings.mineru_api_key,
             timeout=settings.request_timeout_seconds,
         )
