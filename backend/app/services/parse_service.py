@@ -58,9 +58,14 @@ class ParseService:
 
         suffix = src.suffix.lower().lstrip(".")
         doc_type = "pdf" if suffix in {"pdf"} else suffix
-        data = await self.mineru.parse_document(
-            file_bytes=src.read_bytes(), filename=src.name, doc_type=doc_type  # type: ignore[arg-type]
-        )
+        try:
+            data = await self.mineru.parse_document(
+                file_bytes=src.read_bytes(), filename=src.name, doc_type=doc_type  # type: ignore[arg-type]
+            )
+        except Exception as exc:
+            (mdir / "status.txt").write_text("failed", encoding="utf-8")
+            (mdir / "last_error.json").write_text(json.dumps({"stage": "mineru_document", "error": str(exc)}), encoding="utf-8")
+            raise
 
         # Normalise to markdown + chunks (very light placeholder)
         markdown_lines: list[str] = []
@@ -126,7 +131,12 @@ class ParseService:
 
         if cls.label in {"text_heavy", "table"}:
             # Route to MinerU image parsing (OCR/table). User agreed: only images flagged by router use MinerU.
-            data = await self.mineru.parse_image(file_bytes=img_bytes, filename=src.name)
+            try:
+                data = await self.mineru.parse_image(file_bytes=img_bytes, filename=src.name)
+            except Exception as exc:
+                (mdir / "status.txt").write_text("failed", encoding="utf-8")
+                (mdir / "last_error.json").write_text(json.dumps({"stage": "mineru_image", "error": str(exc)}), encoding="utf-8")
+                raise
             text = (data.get("text") or "").strip()
             if text:
                 markdown_lines.append(text)

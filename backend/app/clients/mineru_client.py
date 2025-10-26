@@ -27,20 +27,39 @@ class MinerUClient:
         headers = {"Authorization": f"Bearer {self._api_key}"} if self._api_key else {}
         files = {"file": (filename, file_bytes)}
 
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
-            # NOTE: endpoint path should be aligned with the MinerU docs.
-            # Using a generic placeholder path here; will update when wiring real API.
-            resp = await client.post(f"{self._base_url}/parse/{doc_type}", headers=headers, files=files)
-            resp.raise_for_status()
-            return resp.json()
+        try:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
+                # 假定 MinerU 文档解析同步端点：/api/parse/{doc_type}
+                resp = await client.post(f"{self._base_url}/api/parse/{doc_type}", headers=headers, files=files)
+                resp.raise_for_status()
+                return resp.json()
+        except httpx.HTTPStatusError as exc:
+            detail = await _safe_error_text(exc.response)
+            raise ValueError(f"MinerU document parse failed: {detail}") from exc
 
     async def parse_image(self, *, file_bytes: bytes, filename: str) -> dict[str, Any]:
         headers = {"Authorization": f"Bearer {self._api_key}"} if self._api_key else {}
         files = {"file": (filename, file_bytes)}
 
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
-            resp = await client.post(f"{self._base_url}/parse/image", headers=headers, files=files)
-            resp.raise_for_status()
-            return resp.json()
+        try:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
+                # 假定 MinerU 图片解析同步端点：/api/parse/image
+                resp = await client.post(f"{self._base_url}/api/parse/image", headers=headers, files=files)
+                resp.raise_for_status()
+                return resp.json()
+        except httpx.HTTPStatusError as exc:
+            detail = await _safe_error_text(exc.response)
+            raise ValueError(f"MinerU image parse failed: {detail}") from exc
+
+
+async def _safe_error_text(resp: httpx.Response) -> str:
+    try:
+        await resp.aread()
+    except Exception:
+        pass
+    try:
+        return resp.json()
+    except Exception:
+        return resp.text
 
 
