@@ -109,6 +109,7 @@ class ParseService:
             for ch in chunks:
                 f.write(json.dumps(ch, ensure_ascii=False) + "\n")
 
+        (mdir / "status.txt").write_text("ready", encoding="utf-8")
         return {"ready": True, "chunks": len(chunks)}
 
     async def parse_image_with_routing(self, material_id: str, filename: str) -> dict[str, Any]:
@@ -148,7 +149,7 @@ class ParseService:
         with (mdir / "chunks.jsonl").open("a", encoding="utf-8") as f:
             for ch in chunks:
                 f.write(json.dumps(ch, ensure_ascii=False) + "\n")
-
+        (mdir / "status.txt").write_text("ready", encoding="utf-8")
         return {"ready": True, "chunks": len(chunks)}
 
 

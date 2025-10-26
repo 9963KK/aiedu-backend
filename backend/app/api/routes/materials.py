@@ -112,12 +112,19 @@ async def get_material(material_id: str) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="Material not found")
 
     # Placeholder metadata
+    status_file = tmp_dir / "status.txt"
+    status_value = "uploaded"
+    if status_file.exists():
+        try:
+            status_value = status_file.read_text(encoding="utf-8").strip() or "uploaded"
+        except Exception:
+            status_value = "uploaded"
     meta = MaterialMeta(
         materialId=material_id,
         courseId=None,
         title=None,
         mime="application/octet-stream",
-        status="uploaded",
+        status=status_value,
         createdAt=None,
         updatedAt=None,
         originalUrl=None,
@@ -143,7 +150,7 @@ async def list_chunks(
     material_id: str,
     offset: int = 0,
     limit: int = 100,
-    type: Literal["text", "caption"] | None = None,
+    type: Literal["text", "caption", "subtitle"] | None = None,
 ) -> dict[str, Any]:
     tmp_dir = _ensure_tmp_dir() / material_id
     if not tmp_dir.exists():
@@ -189,6 +196,12 @@ async def reparse(material_id: str, mode: Literal["auto", "vision", "asr", "text
         file_path = next(p for p in tmp_dir.iterdir() if p.is_file())
     except StopIteration as exc:
         raise HTTPException(status_code=400, detail="No file found for material") from exc
+
+    # mark processing
+    try:
+        (tmp_dir / "status.txt").write_text("processing", encoding="utf-8")
+    except Exception:
+        pass
 
     suffix = file_path.suffix.lower().lstrip(".")
     if suffix in {"pdf", "ppt", "pptx", "doc", "docx"}:
